@@ -1,89 +1,72 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import scipy.io as sio
-from scipy import signal
+
+## Variables
+N = 128
+
+
+## Load pregenerated PSS sequences
+pss_sequences = np.load('pss_sequences.npy')
+
+
+## Load waveform data
+
+# data = sio.loadmat('data0.mat')
+# data = sio.loadmat('data1.mat')
+# data = sio.loadmat('data2.mat')
+# data = sio.loadmat('data3.mat')
+
+# iWave = data['iWave']
+# qWave = data['qWave']
+# waveform = iWave.squeeze() + 1j * qWave.squeeze()
+
+waveform = np.load('data.npy')
+
+
+## Create paddded PSS sequences for IFFT
+padded_pss_sequences = np.zeros((3, N), dtype=complex)
+
+for i in range(3):
+    padded_pss_sequences[i, 97:128] = pss_sequences[i, :31]
+    padded_pss_sequences[i, 1:32] = pss_sequences[i, 31:62]
+    padded_pss_sequences[i, 0] = 0
+
+## Perform IFFT on PSS sequences
+for i in range(3):
+    padded_pss_sequences[i] = np.fft.ifft(padded_pss_sequences[i], n=128)
+
+## pregenerate
+corr = np.zeros((3,(len(waveform) + len(padded_pss_sequences[0,:]) - 1)), dtype=complex)
+
+## Perform correlation
+for i in range(3):
+    corr[i,:] = np.correlate(padded_pss_sequences[i], waveform, mode='full')
+
+## Find max correlation
+max_corr = np.zeros(3)
+for i in range(3):
+    max_corr[i] = max(abs(corr[i,:]))
 
 
 
-samples_in_ofdm = 2457600
-sample_rate = 3.84e6
+print("----- PSS_detection -----")
+print("Found NID2:",np.argmax(max_corr))
 
-u_shift = [25, 29, 34]
+print("Correlation values:")
+print(max_corr)
 
-pss_sequences = np.array([
-    [
-        np.exp(-1j * np.pi * u_shift[0] * n * (n + 1) / 63)
-        if n <= 30 else
-        np.exp(-1j * np.pi * u_shift[0] * (n + 1) * (n + 2) / 63)
-        for n in range(62)
-    ]
-    ,
-    [
-        np.exp(-1j * np.pi * u_shift[1] * n * (n + 1) / 63)
-        if n <= 30 else
-        np.exp(-1j * np.pi * u_shift[1] * (n + 1) * (n + 2) / 63)
-        for n in range(62)
-    ]
-    ,
-    [
-        np.exp(-1j * np.pi * u_shift[2] * n * (n + 1) / 63)
-        if n <= 30 else
-        np.exp(-1j * np.pi * u_shift[2] * (n + 1) * (n + 2) / 63)
-        for n in range(62)
-    ]
-])
-
-
-data = np.load('pss_sequences.npy')
-print(data)
-
-
-data = sio.loadmat('data2.mat')
-print(data.keys())
-# read  'iWave', 'qWave' from data and make a complex waveform
-iWave = data['iWave']
-qWave = data['qWave']
-waveform = iWave.flatten() + 1j * qWave.flatten()
-
-
-
-
-
-# plt.figure()
-# #subplots
-# plt.subplot(2,1,1)
-# plt.plot((np.fft.ifft(pss_sequences[0])))
-# plt.subplot(2,1,2)
-# plt.plot(signal.resample(np.fft.ifft(pss_sequences[0]),245760))
-# plt.show()
-
-
-# plt.figure()
-# plt.plot(waveform)
-# plt.xlabel("Sample")
-# plt.ylabel("Amplitude")
-# plt.show()
-
-r_s0 = signal.resample(pss_sequences[0],int(sample_rate*62/16129))
-r_s1 = signal.resample(pss_sequences[1],int(sample_rate*62/16129))
-r_s2 = signal.resample(pss_sequences[2],int(sample_rate*62/16129))
-
-# r_w = signal.resample(waveform,int(sample_rate*len(waveform)/3.84e6))
-r_w = waveform
 plt.figure()
-plt.subplot(2,1,1)
-plt.plot(r_w)
-plt.subplot(2,1,2)
-plt.plot(waveform)
+plt.plot((waveform))
+plt.title('Waveform')
+
+
+plt.figure()
+for i in range(3):
+    plt.subplot(3,1,i+1)
+    plt.plot(np.abs(corr[i,:]))
+    plt.title('NID2 = ' + str(i))
+plt.tight_layout()
 plt.show()
-
-corr0 = max(abs(np.correlate(np.fft.ifft(r_w),np.conjugate(r_s0))))
-corr1 = max(abs(np.correlate(np.fft.ifft(r_w),np.conjugate(r_s1))))
-corr2 = max(abs(np.correlate(np.fft.ifft(r_w),np.conjugate(r_s2))))
-
-print('------NID2_0------')
-print(corr0)
-print(corr1)
-print(corr2)
 
 
