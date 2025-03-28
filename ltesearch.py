@@ -17,7 +17,7 @@ def find_pss(waveform, pss_sequences, N, chunk_size=int(5e-3*1.94e6), plot=False
     padded_pss_sequences = np.zeros((3, N), dtype=complex)
     
     for i in range(3):
-        padded_pss_sequences[i, 97:128] = pss_sequences[i, :31]
+        padded_pss_sequences[i, N-31:N] = pss_sequences[i, :31]
         padded_pss_sequences[i, 1:32] = pss_sequences[i, 31:62]
         padded_pss_sequences[i, 0] = 0
         
@@ -47,4 +47,4 @@ def find_pss(waveform, pss_sequences, N, chunk_size=int(5e-3*1.94e6), plot=False
 
     
     ## return the index of the max correlation
-    return np.argmax(max_corr)  
+    return np.argmax(max_corr)

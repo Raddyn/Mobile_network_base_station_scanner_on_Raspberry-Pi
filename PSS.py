@@ -12,16 +12,16 @@ pss_sequences = np.load('pss_sequences.npy')
 
 ## Load waveform data
 
-# data = sio.loadmat('data0.mat')
+data = sio.loadmat('data0.mat')
 # data = sio.loadmat('data1.mat')
 # data = sio.loadmat('data2.mat')
 # data = sio.loadmat('data3.mat')
 
-# iWave = data['iWave']
-# qWave = data['qWave']
-# waveform = iWave.squeeze() + 1j * qWave.squeeze()
+iWave = data['iWave']
+qWave = data['qWave']
+waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
-waveform = np.load('data.npy')
+# waveform = np.load('data.npy')
 
 
 ## Create paddded PSS sequences for IFFT
