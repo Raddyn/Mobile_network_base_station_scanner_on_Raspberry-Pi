@@ -42,9 +42,31 @@ def find_pss(waveform, pss_sequences, N, chunk_size=int(5e-3*1.94e6), plot=False
         max_corr = np.zeros(3)
         for i in range(3):
             if max(abs(corr[i,:])) > max_corr[i]:
-                max_corr[i] = max(abs(corr[i,:]))        
+                max_corr[i] = max(abs(corr[i,:]))
+    return np.argmax(max_corr)
                   
+def normalize_waveform(data):
+    '''
+        # Description:
+        Function to normalize the waveform data
+        # Inputs:
+            data: np.array of complex values representing the waveform
+        # Outputs:
+            np.array of normalized complex values representing the waveform
+    '''
+    return data / np.max(np.abs(data))
 
+def find_sss(waveform, sss_sequences, N,chunksize=int(5e-3*1.94e6), plot=False):
+    '''
+        # Description:
+        Function to find the SSS sequences in a given waveform
+        # Inputs:
+            waveform: normalized np.array of complex values representing the waveform
+            sss_sequences: np.array of complex values representing the SSS sequences
+            N: int representing the number of samples in the IFFT
+        # Outputs:
+            int representing the NID1 value found in the waveform
+    '''
     
     ## return the index of the max correlation
     return np.argmax(max_corr)

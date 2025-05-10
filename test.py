@@ -2,7 +2,7 @@ import scipy.io as sio
 import numpy as np
 import ltesearch as lte
 
-data = sio.loadmat('data0.mat')
+data = sio.loadmat('data1.mat')
 
 iWave = data['iWave']
 qWave = data['qWave']
