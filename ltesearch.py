@@ -23,7 +23,7 @@ def find_pss(waveform, pss_sequences, N, chunk_size=int(5e-3*1.94e6), plot=False
         
     ## Perform IFFT on PSS sequences
     for i in range(3):
-        padded_pss_sequences[i] = np.fft.ifft(padded_pss_sequences[i], n=128)
+        padded_pss_sequences[i] = np.fft.ifft(padded_pss_sequences[i], N)
     
     ## Pregen corr array
     corr = np.zeros((3,(chunk_size + len(padded_pss_sequences[0,:]) - 1)), dtype=complex)

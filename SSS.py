@@ -59,10 +59,10 @@ def generate_sss(NID1,NID2):
     sss5 = d_sub5
     return sss0, sss5
 
-N = 128
+N = 2048
 NID2 = 0
 
-data = sio.loadmat('data25.mat')
+data = sio.loadmat('data1_20Mhz.mat')
 iWave = data['iWave']
 qWave = data['qWave']
 waveform = iWave.squeeze() + 1j * qWave.squeeze()
@@ -93,8 +93,8 @@ for i in range(168):
     padded_sss_signals_sub5[i, 0] = 0
     
 for i in range(168):
-    padded_sss_signals_sub0[i] = np.fft.ifft(padded_sss_signals_sub0[i], n=128)
-    padded_sss_signals_sub5[i] = np.fft.ifft(padded_sss_signals_sub5[i], n=128)
+    padded_sss_signals_sub0[i] = np.fft.ifft(padded_sss_signals_sub0[i], N)
+    padded_sss_signals_sub5[i] = np.fft.ifft(padded_sss_signals_sub5[i], N)
     
 
 corr_sub0 = np.zeros((168,(len(waveform) + len(padded_sss_signals_sub0[0,:]) - 1)), dtype=complex)

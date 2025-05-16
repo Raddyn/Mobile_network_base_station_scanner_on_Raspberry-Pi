@@ -75,7 +75,8 @@ for i in range(3):
     #set fixed y-axis limits
     plt.ylim(0,2)
 plt.tight_layout()
-plt.show()
+
+
 
 #extract the PSS sequence from the highest peak
 # find the index of the highest peak
@@ -85,16 +86,21 @@ max_index = np.argmax(abs(corr[max_index,:]))
 # extract the PSS sequence from the correlation
 pss_sequence_data = waveform[max_index-N//2:max_index+N//2]
 
+
+
+# equalize the waveform
+normalization_spectrum = np.fft.fft(pss_sequence_data, n=128) - np.fft.fft(padded_pss_sequences[np.argmax(max_corr),:], n=128)
+
 plt.figure()
 plt.subplot(3,1,1)
-plt.plot(np.fft.fft(pss_sequence_data, n=128))
+plt.plot((np.fft.fft(pss_sequence_data, n=128))-normalization_spectrum)
 plt.title('Extracted PSS sequence')
 plt.subplot(3,1,2)
 plt.plot(np.fft.fft(padded_pss_sequences[np.argmax(max_corr),:], n=128))
 plt.title('Original PSS sequence')
 plt.subplot(3,1,3)
-plt.plot(pss_sequences[np.argmax(max_corr),:])
+plt.plot(normalization_spectrum)
+plt.title('Normalization spectrum')
 plt.show()
 
-
-# equalize the waveform
+ 
