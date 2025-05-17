@@ -2,10 +2,13 @@ import adi
 import numpy as np
 import matplotlib.pyplot as plt
 
+fs = int(30.72e6)  # vzorkovací frekvence
+sample_time = 0.1  # čas vzorkování v sekundách
+
 sdr = adi.Pluto(uri='ip:192.168.2.1')
 sdr.rx_lo = int(796e6)
-sdr.rx_buffer_size = int(30.72e6*0.1)
-sdr.sample_rate = int(30.72e6)
+sdr.rx_buffer_size = int(fs*sample_time)
+sdr.sample_rate = int(fs)
 
 iq = sdr.rx()
 
@@ -25,7 +28,7 @@ for i in range(0, len(iq) - fft_size, step):
         break
 
 avg_spectrum = np.mean(specs, axis=0)
-freqs = np.fft.fftshift(np.fft.fftfreq(fft_size, d=1/int(30.72e6)))
+freqs = np.fft.fftshift(np.fft.fftfreq(fft_size, d=1/fs))
 
 # 4. Normalizace a prahování
 avg_spectrum_db = 10 * np.log10(avg_spectrum + 1e-10)
@@ -41,10 +44,23 @@ standard_bw = np.array([1.4, 3, 5, 10, 15, 20])
 closest_bw = standard_bw[np.argmin(np.abs(standard_bw - bw_detected_mhz))]
 
 print(f"Detekovaná šířka pásma: {bw_detected_mhz} MHz (přiřazeno: {closest_bw} MHz)")
+
+plt.figure(figsize=(10, 5))
 plt.plot(freqs / 1e6, avg_spectrum_db)
 plt.axhline(threshold_db, color='red', linestyle='--')
 plt.title("Průměrné spektrum")
 plt.xlabel("Frekvence [MHz]")
 plt.ylabel("Výkon [dB]")
 plt.grid()
+
+plt.figure(figsize=(10, 5))
+plt.specgram(iq, NFFT=fft_size, Fs=fs, noverlap=fft_size//2, scale='dB')
+plt.title("Spektrum LTE signálu")
+plt.xlabel("Čas [s]")
+plt.ylabel("Frekvence [Hz]")
+plt.colorbar(label='Síla signálu [dB]')
+plt.grid()
+plt.tight_layout()
+
+
 plt.show()
