@@ -1,5 +1,5 @@
 import numpy as np
-from sequence_generators import pss_gen, sss_gen
+from core.sequence_generatorssequence_generators import pss_gen, sss_gen
 import scipy.signal as sig
 import scipy.io as sio
 import matplotlib.pyplot as plt
