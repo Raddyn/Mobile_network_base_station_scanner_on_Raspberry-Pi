@@ -1,14 +1,15 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import scipy.io as sio
-from utils.normalisation import normalise_signal
 
 ## Variables
+
+
 N = 128
 
 
 ## Load pregenerated PSS sequences
-pss_sequences = np.load('pss_sequences.npy')
+pss_sequences = np.load('LTE_cell_192_128.npy')
 
 
 ## Load waveform data

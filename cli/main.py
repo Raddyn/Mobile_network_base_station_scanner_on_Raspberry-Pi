@@ -12,26 +12,22 @@ def main():
     parser.add_argument(
         "-o", "--open", type=str, required=False, help="Path to the captured waveform file")
     parser.add_argument(
-        "-s", "--save", type=str, required=False, help="Path to save the waveform file")
+        "-S", "--save", type=str, required=False, help="Path to save the waveform file")
     parser.add_argument(
         "-f", "--frequency", type=float, required=True, help="Frequency of the captured waveform")
     parser.add_argument(
-        "-T", "--time", type=float, required=False, default=0.06, help="Time to capture samples")
+        "-s", "--sample_rate", type=float, required=False, default=1.92e6, help="Sample rate of the captured waveform")
     parser.add_argument(
-        "-t", "--tolerance", type=float, required=False, default=0.5, help="Tolerance for cell detection")
-    # parser.add_argument(
-        # "-n", "--num_cells", type=int, required=False, default=1, help="Number of cells to detect")
+        "-T", "--time", type=float, required=False, default=0.02, help="Time to capture samples")
     parser.add_argument(
         "-d", "--debug", action="store_true", help="Enable debug mode")
     
     args = parser.parse_args()        
-    #------------------------------------------------------------------------------------------------------------------
-    
-    # Check file argument, if not provided, capture using Adalm-Pluto
+
+    #======Check if file exists and is a valid waveform file=========================================    
     if args.open is None:
-        waveform = capture_samples(f_capture=args.frequency, sample_rate=int(30.72e6), num_samples=int(args.time*30.72e6))
+        waveform = capture_samples(f_capture=args.frequency, sample_rate=int(args.sample_rate), num_samples=int(args.time*args.sample_rate))
     else:
-    # Load waveform from file
         if not os.path.isfile(args.open):
             print(f"Error: File {args.open} does not exist.")
             sys.exit()
@@ -40,9 +36,7 @@ def main():
             if waveform is None:
                 print(f"Error: File {args.open} is not a valid waveform file.")
                 sys.exit()
-    #------------------------------------------------------------------------------------------------------------------
-    
-    # Save the waveform to a file if the save argument is provided    
+    #=====Check if save directory exists====================================================================    
     if args.save:
         # Save the waveform to a file
         if not os.path.isdir(os.path.dirname(args.save)):
@@ -50,17 +44,9 @@ def main():
             sys.exit()
         else:
             lte_cell_scan.save_waveform(waveform, args.save)
-    #------------------------------------------------------------------------------------------------------------------
-    # scan the waveform for LTE transmission and determine bandwidtht in order find the center frequency in order to
-    # set the correct number of samples for the IFFT
 
-    #------------------------------------------------------------------------------------------------------------------
-
-    # LTE Cell detection
-    lte_cell_scan.detect_cells(waveform, args.frequency, args.tolerance, args.debug)
-
-    #------------------------------------------------------------------------------------------------------------------
-    
+    #====Scan the waveform for LTE transmission========================================
+    lte_cell_scan.detect_cells(waveform,sample_rate=args.sample_rate,debug=True)
 
 if __name__ == "__main__":
     main()

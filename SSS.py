@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io as sio
+import scipy.signal as sig
 from ltesearch import find_pss
 
 def generate_sss(NID1,NID2):
@@ -59,29 +60,37 @@ def generate_sss(NID1,NID2):
     sss5 = d_sub5
     return sss0, sss5
 
-N = 2048
-NID2 = 0
+NID2 = None
 
-data = sio.loadmat('data1_20Mhz.mat')
+data = sio.loadmat('data1.mat')
 iWave = data['iWave']
 qWave = data['qWave']
 waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
+# waveform = np.load('LTE_cell_192_128.npy')
+# waveform = np.load('LTE_cell_1536_1024.npy')
 # waveform = np.load('data.npy')
 
-NID2 = find_pss(waveform, np.load('pss_sequences.npy'), N=N)
+
+# data = sio.loadmat('data1_20Mhz.mat')
+
+# iWave = data['iWave']
+# qWave = data['qWave']
+# waveform = iWave.squeeze() + 1j * qWave.squeeze()
+
+waveform = sig.decimate(waveform, 2)
+
+N = 64
+NID2 = find_pss(waveform, np.load('pss_sequences.npy'), N=N, plot=True)
 
 print("----- PSS_detection -----")
-print("Found NID2:",NID2)
+print("Found NID2:", NID2)
 
-
-
-sss_signals_sub0 = np.zeros((168,62),dtype=complex)
-sss_signals_sub5 = np.zeros((168,62),dtype=complex)
+sss_signals_sub0 = np.zeros((168, 62), dtype=complex)
+sss_signals_sub5 = np.zeros((168, 62), dtype=complex)
 for i in range(168):
-    sss_signals_sub0[i],sss_signals_sub5[i] = generate_sss(i,NID2)
-  
-  
+    sss_signals_sub0[i], sss_signals_sub5[i] = generate_sss(i, NID2)
+
 padded_sss_signals_sub0 = np.zeros((168, N), dtype=complex)
 padded_sss_signals_sub5 = np.zeros((168, N), dtype=complex)  
 for i in range(168):
@@ -109,7 +118,23 @@ max_corr_sub5 = np.zeros(168)
 for i in range(168):
     max_corr_sub0[i] = max(abs(corr_sub0[i,:]))
     max_corr_sub5[i] = max(abs(corr_sub5[i,:]))
-    
+
+plt.figure()
+plt.subplot(2, 1, 1)
+plt.plot(np.abs(corr_sub0[0,:]))
+plt.title("Correlation with SSS sub0")
+plt.xlabel("Samples")
+plt.ylabel("Correlation")
+plt.subplot(2, 1, 2)
+plt.plot(np.abs(corr_sub5[0,:]))
+plt.title("Correlation with SSS sub5")
+plt.xlabel("Samples")
+plt.ylabel("Correlation")
+plt.tight_layout()
+plt.show()
+
+
+
 print("----- SSS_detection -----")
 print("Found NID1_sub0:",np.argmax(max_corr_sub0))
 print("Found NID1_sub1:",np.argmax(max_corr_sub5))
