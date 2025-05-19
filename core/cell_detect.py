@@ -88,7 +88,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         plt.tight_layout()
 
     # Locate the PSS sequence in the waveform
-    pss_center_in_waveform = peaks[0] - 1
+    pss_center_in_waveform = np.argmax(np.abs(corr[NID_2, :])) - 1
     pss_waveform = waveform[
         pss_center_in_waveform - N // 2 : pss_center_in_waveform + N // 2
     ]
