@@ -68,7 +68,7 @@ qWave = data['qWave']
 waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
 # waveform = np.load('LTE_cell_192_128.npy')
-# waveform = np.load('LTE_cell_1536_1024.npy')
+waveform = np.load('LTE_cell_1536_1024.npy')
 # waveform = np.load('data.npy')
 
 
@@ -80,7 +80,7 @@ waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
 waveform = sig.decimate(waveform, 2)
 
-N = 64
+N = 128
 NID2 = find_pss(waveform, np.load('pss_sequences.npy'), N=N, plot=True)
 
 print("----- PSS_detection -----")

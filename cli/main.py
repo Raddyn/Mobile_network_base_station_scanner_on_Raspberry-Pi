@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from core.capture import capture_samples
@@ -21,6 +22,8 @@ def main():
         "-T", "--time", type=float, required=False, default=0.02, help="Time to capture samples")
     parser.add_argument(
         "-d", "--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument(
+        "-n", "--num_of_scans", type=int, required=False, default=3, help="Number of iterations used to scan the current frequency, outputs most common NID1 and NID2")
     
     args = parser.parse_args()        
 
@@ -32,10 +35,10 @@ def main():
             print(f"Error: File {args.open} does not exist.")
             sys.exit()
         else:
-            waveform = lte_cell_scan.load_waveform(args.open)
             if waveform is None:
                 print(f"Error: File {args.open} is not a valid waveform file.")
                 sys.exit()
+            waveform = lte_cell_scan.load_waveform(args.open)
     #=====Check if save directory exists====================================================================    
     if args.save:
         # Save the waveform to a file
@@ -47,11 +50,14 @@ def main():
 
     #====Scan the waveform for LTE transmission========================================
     NID_2, NID_1 = lte_cell_scan(waveform,sample_rate=args.sample_rate,debug=True)
-    print("----- PSS_detection -----")
-    print("Found NID2:", NID_2)
-    print("----- SSS_detection -----")
-    print("Found NID1:", NID_1)
-    print("----- Cell ID ------")
+    print("==== Scan parameters ====")
+    print("Frequency:", args.frequency)
+    print("Time:", time.strftime("%d-%m-%Y %H:%M:%S", time.localtime()))
+    #TODO: Add a check to see if the NID_1 and NID_2 are valid,
+    # and if not, print an error message and exit
+    print("===== Found Cell ID =====")
     print("Cell ID:", NID_1 * 3 + NID_2)
+    sys.exit()
+    
 if __name__ == "__main__":
     main()

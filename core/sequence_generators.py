@@ -4,6 +4,8 @@ import numpy as np
 def pss_gen(NID2):
     """
     Generate the Primary Synchronization Signal (PSS) for a given NID2.
+    This implementation is based on the LTE PSS generation algorithm as described in
+    https://www.sharetechnote.com/html/Handbook_LTE_PSS.html accessed on 19.05.2025
 
     Parameters:
         NID2 (int): The NID2 value (0, 1, or 2).
@@ -36,6 +38,9 @@ def pss_gen(NID2):
 def sss_gen(NID1, NID2):
     """
     Generate the Secondary Synchronization Signal (SSS) for given NID1 and NID2.
+    
+    # This implementation is based on the LTE SSS generation algorithm as described in
+    # https://www.sharetechnote.com/html/Handbook_LTE_SSS.html accessed on 19.05.2025
 
     Parameters:
         NID1 (int): The NID1 value (0 to 167).
