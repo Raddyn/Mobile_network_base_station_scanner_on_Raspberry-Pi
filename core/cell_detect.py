@@ -18,7 +18,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     # show the waveform using spectrogram
     if debug:	
         plt.figure()
-        plt.specgram(waveform, Fs=sample_rate, NFFT=int(sample_rate//15000), noverlap=int(sample_rate//15000/2))
+        plt.specgram(waveform, Fs=sample_rate, NFFT=int(sample_rate//15000), noverlap=int((sample_rate//15000)/2))
         plt.title("Waveform Spectrogram")
         plt.xlabel("Time (s)")
         plt.ylabel("Frequency (Hz)")
