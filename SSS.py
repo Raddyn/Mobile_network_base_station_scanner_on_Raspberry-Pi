@@ -100,6 +100,14 @@ for i in range(168):
     padded_sss_signals_sub5[i, N-31:N] = sss_signals_sub5[i, :31]
     padded_sss_signals_sub5[i, 1:32] = sss_signals_sub5[i, 31:62]
     padded_sss_signals_sub5[i, 0] = 0
+
+
+# equlize
+
+
+
+
+
     
 for i in range(168):
     padded_sss_signals_sub0[i] = np.fft.ifft(padded_sss_signals_sub0[i], N)

@@ -46,7 +46,12 @@ def main():
             lte_cell_scan.save_waveform(waveform, args.save)
 
     #====Scan the waveform for LTE transmission========================================
-    lte_cell_scan.detect_cells(waveform,sample_rate=args.sample_rate,debug=True)
-
+    NID_2, NID_1 = lte_cell_scan(waveform,sample_rate=args.sample_rate,debug=True)
+    print("----- PSS_detection -----")
+    print("Found NID2:", NID_2)
+    print("----- SSS_detection -----")
+    print("Found NID1:", NID_1)
+    print("----- Cell ID ------")
+    print("Cell ID:", NID_1 * 3 + NID_2)
 if __name__ == "__main__":
     main()
