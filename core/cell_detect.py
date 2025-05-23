@@ -6,7 +6,6 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from utils.normalisation import normalise_signal
 
 
 def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
@@ -95,7 +94,21 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         - (69 + N // 2)
         + 62
     ]
-
+    if debug:
+        plt.figure()
+        plt.subplot(2, 1, 1)
+        plt.plot((ifft_pss_sequences[NID_2, :]))
+        plt.title(f"PSS NID2: {NID_2}")    
+        plt.xlabel("Samples")
+        plt.ylabel("Magnitude")
+        plt.subplot(2, 1, 2)
+        plt.plot(waveform[pss_center_in_waveform-(N//2):pss_center_in_waveform+(N//2)], label="Waveform")
+        plt.title("Waveform")
+        plt.xlabel("Samples")
+        plt.ylabel("Magnitude")
+        plt.legend()
+        plt.tight_layout()
+        
     # generate SSS sequences
     sss_sub0 = np.zeros((168, 62), dtype=complex)
     sss_sub5 = np.zeros((168, 62), dtype=complex)
@@ -287,7 +300,27 @@ def sss_gen(NID1, NID2):
 
     return sss0, sss5
 
+def normalise_signal(signal):
+    """
+    Normalise the signal to the range [-1, 1].
 
+    Parameters:
+        signal (np.ndarray): complex signal to be normalised.
+
+    Returns:
+        np.ndarray: The normalised signal.
+    """
+    # Calculate the maximum absolute value of the signal
+    max_val = np.max(np.abs(signal))
+
+    # Avoid division by zero
+    if max_val == 0:
+        return signal
+
+    # Normalise the signal
+    normalised_signal = signal / max_val
+
+    return normalised_signal
 # Test script
 if __name__ == "__main__":
     # data = sio.loadmat('data1_20Mhz.mat')
