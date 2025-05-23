@@ -32,7 +32,8 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         pss[i, :] = pss_gen(i)
 
     # decimate the waveform
-    waveform = sig.decimate(waveform, int(sample_rate // (15000 * N)))
+    if sample_rate > 1.92e6:
+        waveform = sig.decimate(waveform, int(sample_rate // (15000 * N)))
 
     # normalise the waveform
     waveform = normalise_signal(waveform)
@@ -97,17 +98,16 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     # Equalization 
     fft_pss_sequences = np.fft.fft(pss_waveform, n=N)
     eq_func = np.zeros(N, dtype=complex)
+    fft_pss_sequences = fft_pss_sequences / np.max(np.abs(fft_pss_sequences))
     for i in range(N):
-        if padded_pss_sequences[NID_2, i] != 0:
-            eq_func[i] = fft_pss_sequences[i] / padded_pss_sequences[NID_2, i]
-        else:
-            eq_func[i] = 0
+        eq_func[i] = padded_pss_sequences[NID_2, i] / fft_pss_sequences[i] + 1e-10
     
     
     
     plt.figure()
     plt.subplot(3, 1, 1)
-    plt.plot(fft_pss_sequences)
+    plt.plot(np.real(fft_pss_sequences[:]*eq_func[:]))
+    plt.plot(np.imag(fft_pss_sequences[:]*eq_func[:]))
     plt.title("FFT of PSS sequence")
     plt.xlabel("Samples")
     plt.ylabel("Magnitude")
@@ -130,8 +130,23 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
 
 
     # Locate the SSS sequences in the waveform
-    sss_waveform = waveform[pss_center_in_waveform - ((1+68*N//64) + N // 2) : pss_center_in_waveform- ((1+68*N//64) + N // 2) + N]
+    # sss_waveform = waveform[pss_center_in_waveform - ((9*(N//128)+N) + N // 2) : pss_center_in_waveform- ((9*(N//128)+N) + N // 2) + N]
+    sss_waveform = waveform[pss_center_in_waveform - ((32*(N//128)+N) + N // 2) : pss_center_in_waveform- ((32*(N//128)+N) + N // 2) + N]
     
+    
+    # sss_waveform_fft = np.fft.fft(sss_waveform, n=N)
+    # eq_sss = np.zeros(N+1, dtype=complex)
+    # eq_sss[0] = 0
+    # eq_sss[1:] = sss_waveform_fft[:] / np.max(np.abs(sss_waveform_fft[1:]))
+    # ifft_eq_sss = np.fft.ifft(eq_sss, n=N)
+    
+    
+    # plt.figure()
+    # plt.suptitle("Equalization of SSS")
+    # plt.subplot(2, 1, 1)
+    # plt.plot(eq_sss)
+    # plt.subplot(2, 1, 2)
+    # plt.plot(ifft_eq_sss)
     
     if debug:
         plt.figure()
@@ -177,8 +192,8 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     
     # # Perform IFFT on SSS sequences
     for i in range(168):
-        ifft_sss_sub0[i, :] = np.fft.ifft((padded_sss_sub0[i, :] * eq_func[:]), n=N)
-        ifft_sss_sub5[i, :] = np.fft.ifft((padded_sss_sub5[i, :] * eq_func[:]), n=N)
+        ifft_sss_sub0[i, :] = np.fft.ifft((padded_sss_sub0[i, :]), n=N)
+        ifft_sss_sub5[i, :] = np.fft.ifft((padded_sss_sub5[i, :]), n=N)
 
     # Perform correlation
     corr_sub0 = np.zeros(
@@ -212,12 +227,14 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
             plt.plot(ifft_sss_sub0[NID_1, :])
         else:
             plt.plot(ifft_sss_sub5[NID_1, :])
+            
         plt.title(f"SSS NID1: {NID_1}")
         plt.xlabel("Samples")
         plt.ylabel("Amplitude")
         plt.grid()
         plt.subplot(2, 1, 2)
-        plt.plot(waveform[pss_center_in_waveform - ((69*N//64) + N // 2) : pss_center_in_waveform- ((69*N//64) + N // 2) + N], label="Waveform")
+        # plt.plot(waveform[pss_center_in_waveform - ((9*(N//128)+N) + N // 2) : pss_center_in_waveform- ((9*(N//128)+N) + N // 2) + N], label="Waveform")
+        plt.plot(waveform[pss_center_in_waveform - ((32*(N//128)+N) + N // 2) : pss_center_in_waveform- ((32*(N//128)+N) + N // 2) + N], label="Waveform")
         plt.title("SSS in waveform")
         plt.xlabel("Samples")
         plt.ylabel("Amplitude")
@@ -246,13 +263,13 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     if debug:
         plt.figure()
         plt.subplot(2, 1, 1)
-        plt.stem(max_corr_sub0, linefmt='k-', markerfmt='ko', basefmt='k-')
+        plt.stem(max_corr_sub0, linefmt='k-', markerfmt='k_', basefmt='k-')
         plt.title("Max correlation with SSS sub0")
         plt.xlabel("NID1")
         plt.ylabel("Magnitude")
         plt.grid()
         plt.subplot(2, 1, 2)
-        plt.stem(max_corr_sub5, linefmt='k-', markerfmt='ko', basefmt='k-')
+        plt.stem(max_corr_sub5, linefmt='k-', markerfmt='k_', basefmt='k-')
         plt.title("Max correlation with SSS sub5")
         plt.xlabel("NID1")
         plt.ylabel("Magnitude")
@@ -403,10 +420,10 @@ def normalise_signal(signal):
 
 # Test script
 if __name__ == "__main__":
-    # data = sio.loadmat('data2.mat')
-    # iWave = data['iWave']
-    # qWave = data['qWave']
-    # waveform = iWave.squeeze() + 1j * qWave.squeeze()
+    data = sio.loadmat('data2.mat')
+    iWave = data['iWave']
+    qWave = data['qWave']
+    waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
     waveform = np.load("LTE_cell_192_128.npy")
 
