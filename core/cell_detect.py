@@ -103,7 +103,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         plt.ylabel("Phase (radians)")
         plt.subplot(2, 1, 2)
         plt.plot(np.angle(waveform[pss_center_in_waveform-(N//2):pss_center_in_waveform+(N//2)]), label="Waveform")
-        plt.title("Waveform")
+        plt.title("PSS in waveform")
         plt.xlabel("Samples")
         plt.ylabel("Magnitude")
         plt.legend()
@@ -132,6 +132,9 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     ifft_sss_sub0 = np.zeros((168, N), dtype=complex)
     ifft_sss_sub5 = np.zeros((168, N), dtype=complex)
 
+    
+    
+    
     # # Perform IFFT on SSS sequences
     for i in range(168):
         ifft_sss_sub0[i, :] = np.fft.ifft(padded_sss_sub0[i, :], n=N)
@@ -162,7 +165,27 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     else:
         NID_1 = np.argmax(max_corr_sub5)
 
-   
+    if debug:
+        plt.figure()
+        plt.subplot(2, 1, 1)
+        if np.max(max_corr_sub0) > np.max(max_corr_sub5):
+            plt.plot(np.angle((ifft_sss_sub0[NID_1, :])))
+        else:
+            plt.plot(np.angle((ifft_sss_sub5[NID_1, :])))
+        plt.title(f"SSS NID1: {NID_1}")
+        plt.xlabel("Samples")
+        plt.ylabel("Phase (radians)")
+        plt.grid()
+        plt.subplot(2, 1, 2)
+        plt.plot(np.angle(sss_waveform[pss_center_in_waveform - (69 + N // 2) : pss_center_in_waveform
+        - (69 + N // 2)
+        + 62]), label="Waveform")
+        plt.title("SSS in waveform")
+        plt.xlabel("Samples")
+        plt.ylabel("Magnitude")
+        plt.legend()
+        
+
     if debug:
         plt.figure()
         plt.subplot(2, 1, 1)
