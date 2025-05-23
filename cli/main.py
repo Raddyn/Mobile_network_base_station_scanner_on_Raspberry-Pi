@@ -49,7 +49,7 @@ def main():
             lte_cell_scan.save_waveform(waveform, args.save)
 
     #====Scan the waveform for LTE transmission========================================
-    NID_2, NID_1 = lte_cell_scan(waveform,sample_rate=args.sample_rate,debug=True)
+    NID_2, NID_1 = lte_cell_scan(waveform,sample_rate=args.sample_rate,debug=args.debug)
     print("==== Scan parameters ====")
     print("Frequency:", args.frequency)
     print("Time:", time.strftime("%d-%m-%Y %H:%M:%S", time.localtime()))
