@@ -90,9 +90,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
 
 
     # Locate the SSS sequences in the waveform
-    sss_waveform = waveform[pss_center_in_waveform - ((69*N//64) + N // 2) : pss_center_in_waveform- ((69*N//64) + N // 2) + N]
-    
-    
+    sss_waveform = waveform[pss_center_in_waveform - ((68*N//64) + N // 2) : pss_center_in_waveform- ((68*N//64) + N // 2) + N]
     
     
     if debug:
@@ -133,6 +131,8 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     ifft_sss_sub5 = np.zeros((168, N), dtype=complex)
 
     
+
+    
     
     
     # # Perform IFFT on SSS sequences
@@ -169,21 +169,40 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         plt.figure()
         plt.subplot(2, 1, 1)
         if np.max(max_corr_sub0) > np.max(max_corr_sub5):
-            plt.plot(np.angle(ifft_sss_sub0[NID_1, :]))
+            plt.plot(ifft_sss_sub0[NID_1, :])
         else:
-            plt.plot(np.angle(ifft_sss_sub5[NID_1, :]))
+            plt.plot(ifft_sss_sub5[NID_1, :])
         plt.title(f"SSS NID1: {NID_1}")
         plt.xlabel("Samples")
-        plt.ylabel("Phase (radians)")
+        plt.ylabel("Amplitude")
         plt.grid()
         plt.subplot(2, 1, 2)
-        plt.plot(np.angle(waveform[pss_center_in_waveform - ((69*N//64) + N // 2) : pss_center_in_waveform- ((69*N//64) + N // 2) + N]), label="Waveform")
+        plt.plot(waveform[pss_center_in_waveform - ((69*N//64) + N // 2) : pss_center_in_waveform- ((69*N//64) + N // 2) + N], label="Waveform")
+        plt.title("SSS in waveform")
+        plt.xlabel("Samples")
+        plt.ylabel("Amplitude")
+        plt.grid()
+        
+        plt.figure()
+        plt.subplot(2, 1, 1)
+        plt.plot(np.fft.fft(sss_waveform, n=N))
+        plt.title("SSS in waveform")
+        plt.xlabel("Samples")
+        plt.ylabel("Magnitude")
+        plt.subplot(2, 1, 2)
+        if np.max(max_corr_sub0) > np.max(max_corr_sub5):
+            plt.plot(np.fft.fft(ifft_sss_sub0[NID_1, :], n=N))
+        else:
+            plt.plot(np.fft.fft(ifft_sss_sub5[NID_1, :], n=N))
         plt.title("SSS in waveform")
         plt.xlabel("Samples")
         plt.ylabel("Magnitude")
         plt.grid()
+        plt.tight_layout()
         
-
+        plt.figure()
+        plt.plot(waveform)    
+            
     if debug:
         plt.figure()
         plt.subplot(2, 1, 1)
@@ -344,12 +363,12 @@ def normalise_signal(signal):
 
 # Test script
 if __name__ == "__main__":
-    # data = sio.loadmat('data2.mat')
-    # iWave = data['iWave']
-    # qWave = data['qWave']
-    # waveform = iWave.squeeze() + 1j * qWave.squeeze()
+    data = sio.loadmat('data2.mat')
+    iWave = data['iWave']
+    qWave = data['qWave']
+    waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
-    waveform = np.load("LTE_cell_192_128.npy")
+    # waveform = np.load("LTE_cell_192_128.npy")
 
     # Load the captured waveform
     NID_2, NID_1 = lte_cell_scan(waveform, sample_rate=1.92e6, debug=True)
