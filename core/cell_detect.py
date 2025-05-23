@@ -92,10 +92,6 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     # Locate the SSS sequences in the waveform
     sss_waveform = waveform[pss_center_in_waveform - ((69*N//64) + N // 2) : pss_center_in_waveform- ((69*N//64) + N // 2) + N]
     
-    print(sss_waveform.shape)
-    print(ifft_pss_sequences[NID_2, :].shape)
-    
-    
     
     
     
