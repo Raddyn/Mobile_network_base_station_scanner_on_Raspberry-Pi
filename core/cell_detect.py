@@ -95,11 +95,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     print(sss_waveform.shape)
     print(ifft_pss_sequences[NID_2, :].shape)
     
-    plt.figure()
-    plt.plot(waveform)
-    # equalise
     
-    # sss_waveform[:] = np.angle(sss_waveform[:]) - (np.angle(ifft_pss_sequences[NID_2, :]) - np.angle(waveform[pss_center_in_waveform-(N//2):pss_center_in_waveform+(N//2)]))
     
     
     
