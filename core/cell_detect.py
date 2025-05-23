@@ -130,8 +130,14 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
 
 
     # Locate the SSS sequences in the waveform
-    # sss_waveform = waveform[pss_center_in_waveform - ((9*(N//128)+N) + N // 2) : pss_center_in_waveform- ((9*(N//128)+N) + N // 2) + N]
+    sss_waveform = waveform[pss_center_in_waveform - ((9*(N//128)+N) + N // 2) : pss_center_in_waveform- ((9*(N//128)+N) + N // 2) + N]
+    plt.figure()
+    plt.plot((sss_waveform))
+    plt.title("SSS in waveform normal CP")
     sss_waveform = waveform[pss_center_in_waveform - ((32*(N//128)+N) + N // 2) : pss_center_in_waveform- ((32*(N//128)+N) + N // 2) + N]
+    plt.figure()
+    plt.plot((sss_waveform))
+    plt.title("SSS in waveform extended CP")
     
     
     # sss_waveform_fft = np.fft.fft(sss_waveform, n=N)
