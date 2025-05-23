@@ -89,8 +89,48 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     pss_center_in_waveform = np.argmax(np.abs(corr[NID_2, :])) - 1
 
 
+    pss_waveform = waveform[
+        pss_center_in_waveform - N//2 : pss_center_in_waveform + N // 2
+    ]  # Extract the PSS sequence from the waveform
+        
+    
+    # Equalization 
+    fft_pss_sequences = np.fft.fft(pss_waveform, n=N)
+    eq_func = np.zeros(N, dtype=complex)
+    for i in range(N):
+        if padded_pss_sequences[NID_2, i] != 0:
+            eq_func[i] = fft_pss_sequences[i] / padded_pss_sequences[NID_2, i]
+        else:
+            eq_func[i] = 0
+    
+    
+    
+    plt.figure()
+    plt.subplot(3, 1, 1)
+    plt.plot(fft_pss_sequences)
+    plt.title("FFT of PSS sequence")
+    plt.xlabel("Samples")
+    plt.ylabel("Magnitude")
+    plt.subplot(3, 1, 2)
+    plt.plot((eq_func))
+    plt.title("Equalization function")
+    plt.xlabel("Samples")
+    plt.ylabel("Magnitude")
+    plt.subplot(3, 1, 3)
+    plt.plot((padded_pss_sequences[NID_2, :]))
+    plt.title("PSS sequence")
+    plt.xlabel("Samples")
+    plt.ylabel("Magnitude")
+    plt.tight_layout()
+    
+
+
+
+
+
+
     # Locate the SSS sequences in the waveform
-    sss_waveform = waveform[pss_center_in_waveform - ((68*N//64) + N // 2) : pss_center_in_waveform- ((68*N//64) + N // 2) + N]
+    sss_waveform = waveform[pss_center_in_waveform - ((1+68*N//64) + N // 2) : pss_center_in_waveform- ((1+68*N//64) + N // 2) + N]
     
     
     if debug:
@@ -137,8 +177,8 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     
     # # Perform IFFT on SSS sequences
     for i in range(168):
-        ifft_sss_sub0[i, :] = np.fft.ifft(padded_sss_sub0[i, :], n=N)
-        ifft_sss_sub5[i, :] = np.fft.ifft(padded_sss_sub5[i, :], n=N)
+        ifft_sss_sub0[i, :] = np.fft.ifft((padded_sss_sub0[i, :] * eq_func[:]), n=N)
+        ifft_sss_sub5[i, :] = np.fft.ifft((padded_sss_sub5[i, :] * eq_func[:]), n=N)
 
     # Perform correlation
     corr_sub0 = np.zeros(
@@ -363,12 +403,12 @@ def normalise_signal(signal):
 
 # Test script
 if __name__ == "__main__":
-    data = sio.loadmat('data2.mat')
-    iWave = data['iWave']
-    qWave = data['qWave']
-    waveform = iWave.squeeze() + 1j * qWave.squeeze()
+    # data = sio.loadmat('data2.mat')
+    # iWave = data['iWave']
+    # qWave = data['qWave']
+    # waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
-    # waveform = np.load("LTE_cell_192_128.npy")
+    waveform = np.load("LTE_cell_192_128.npy")
 
     # Load the captured waveform
     NID_2, NID_1 = lte_cell_scan(waveform, sample_rate=1.92e6, debug=True)
