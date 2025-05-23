@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.signal as sig
 import matplotlib.pyplot as plt
+import scipy.io as sio
 
 import sys
 import os
@@ -89,11 +90,19 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
 
 
     # Locate the SSS sequences in the waveform
-    sss_waveform = waveform[
-        pss_center_in_waveform - (69 + N // 2) : pss_center_in_waveform
-        - (69 + N // 2)
-        + 62
-    ]
+    sss_waveform = waveform[pss_center_in_waveform - ((69*N//64) + N // 2) : pss_center_in_waveform- ((69*N//64) + N // 2) + N]
+    
+    print(sss_waveform.shape)
+    print(ifft_pss_sequences[NID_2, :].shape)
+    
+    plt.figure()
+    plt.plot(waveform)
+    # equalise
+    
+    # sss_waveform[:] = np.angle(sss_waveform[:]) - (np.angle(ifft_pss_sequences[NID_2, :]) - np.angle(waveform[pss_center_in_waveform-(N//2):pss_center_in_waveform+(N//2)]))
+    
+    
+    
     if debug:
         plt.figure()
         plt.subplot(2, 1, 1)
@@ -106,7 +115,6 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         plt.title("PSS in waveform")
         plt.xlabel("Samples")
         plt.ylabel("Magnitude")
-        plt.legend()
         plt.tight_layout()
         
     # generate SSS sequences
@@ -169,19 +177,19 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         plt.figure()
         plt.subplot(2, 1, 1)
         if np.max(max_corr_sub0) > np.max(max_corr_sub5):
-            plt.plot(np.angle((ifft_sss_sub0[NID_1, :])))
+            plt.plot(np.angle(ifft_sss_sub0[NID_1, :]))
         else:
-            plt.plot(np.angle((ifft_sss_sub5[NID_1, :])))
+            plt.plot(np.angle(ifft_sss_sub5[NID_1, :]))
         plt.title(f"SSS NID1: {NID_1}")
         plt.xlabel("Samples")
         plt.ylabel("Phase (radians)")
         plt.grid()
         plt.subplot(2, 1, 2)
-        plt.plot(np.angle(waveform[pss_center_in_waveform - (69 + N // 2) : pss_center_in_waveform- (69 + N // 2)+ 62]), label="Waveform")
+        plt.plot(np.angle(waveform[pss_center_in_waveform - ((69*N//64) + N // 2) : pss_center_in_waveform- ((69*N//64) + N // 2) + N]), label="Waveform")
         plt.title("SSS in waveform")
         plt.xlabel("Samples")
         plt.ylabel("Magnitude")
-        plt.legend()
+        plt.grid()
         
 
     if debug:
@@ -340,9 +348,11 @@ def normalise_signal(signal):
     normalised_signal = signal / max_val
 
     return normalised_signal
+
+
 # Test script
 if __name__ == "__main__":
-    # data = sio.loadmat('data1_20Mhz.mat')
+    # data = sio.loadmat('data2.mat')
     # iWave = data['iWave']
     # qWave = data['qWave']
     # waveform = iWave.squeeze() + 1j * qWave.squeeze()
