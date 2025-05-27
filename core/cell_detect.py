@@ -87,87 +87,23 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
 
 
     # Locate the PSS sequence in the waveform
-    pss_center_in_waveform = np.argmax(np.abs(corr[NID_2, :])) - 1
-
-
-    pss_waveform = waveform[
-        pss_center_in_waveform - N//2 : pss_center_in_waveform + N // 2
-    ]  # Extract the PSS sequence from the waveform
-        
-    
-    # Equalization 
-    fft_pss_sequences = np.fft.fft(pss_waveform, n=N)
-    eq_func = np.zeros(N, dtype=complex)
-    fft_pss_sequences = fft_pss_sequences / np.max(np.abs(fft_pss_sequences))
-    for i in range(N):
-        eq_func[i] = padded_pss_sequences[NID_2, i] / fft_pss_sequences[i] + 1e-10
-    
-    
-    
-    plt.figure()
-    plt.subplot(3, 1, 1)
-    plt.plot(np.real(fft_pss_sequences[:]*eq_func[:]))
-    plt.plot(np.imag(fft_pss_sequences[:]*eq_func[:]))
-    plt.title("FFT of PSS sequence")
-    plt.xlabel("Samples")
-    plt.ylabel("Magnitude")
-    plt.subplot(3, 1, 2)
-    plt.plot((eq_func))
-    plt.title("Equalization function")
-    plt.xlabel("Samples")
-    plt.ylabel("Magnitude")
-    plt.subplot(3, 1, 3)
-    plt.plot((padded_pss_sequences[NID_2, :]))
-    plt.title("PSS sequence")
-    plt.xlabel("Samples")
-    plt.ylabel("Magnitude")
-    plt.tight_layout()
-    
-
-
-
-
+    pss_center_in_waveform = np.argmax(np.abs(corr[NID_2, :]))
 
 
     # Locate the SSS sequences in the waveform
-    sss_waveform = waveform[pss_center_in_waveform - ((9*(N//128)+N) + N // 2) : pss_center_in_waveform- ((9*(N//128)+N) + N // 2) + N]
+    sss_waveform_cp_normal = waveform[pss_center_in_waveform - ((9*(N//128)+N) + N // 2) : pss_center_in_waveform- ((9*(N//128)+N) + N // 2) + N]
     plt.figure()
-    plt.plot((sss_waveform))
+    plt.plot((sss_waveform_cp_normal))
     plt.title("SSS in waveform normal CP")
-    sss_waveform = waveform[pss_center_in_waveform - ((32*(N//128)+N) + N // 2) : pss_center_in_waveform- ((32*(N//128)+N) + N // 2) + N]
+    sss_waveform_cp_extended = waveform[pss_center_in_waveform - ((32*(N//128)+N) + N // 2) : pss_center_in_waveform- ((32*(N//128)+N) + N // 2) + N]
     plt.figure()
-    plt.plot((sss_waveform))
+    plt.plot((sss_waveform_cp_extended))
     plt.title("SSS in waveform extended CP")
     
     
-    # sss_waveform_fft = np.fft.fft(sss_waveform, n=N)
-    # eq_sss = np.zeros(N+1, dtype=complex)
-    # eq_sss[0] = 0
-    # eq_sss[1:] = sss_waveform_fft[:] / np.max(np.abs(sss_waveform_fft[1:]))
-    # ifft_eq_sss = np.fft.ifft(eq_sss, n=N)
-    
-    
-    # plt.figure()
-    # plt.suptitle("Equalization of SSS")
-    # plt.subplot(2, 1, 1)
-    # plt.plot(eq_sss)
-    # plt.subplot(2, 1, 2)
-    # plt.plot(ifft_eq_sss)
-    
-    if debug:
-        plt.figure()
-        plt.subplot(2, 1, 1)
-        plt.plot(np.angle((ifft_pss_sequences[NID_2, :])))
-        plt.title(f"PSS NID2: {NID_2}")    
-        plt.xlabel("Samples")
-        plt.ylabel("Phase (radians)")
-        plt.subplot(2, 1, 2)
-        plt.plot(np.angle(waveform[pss_center_in_waveform-(N//2):pss_center_in_waveform+(N//2)]), label="Waveform")
-        plt.title("PSS in waveform")
-        plt.xlabel("Samples")
-        plt.ylabel("Magnitude")
-        plt.tight_layout()
-        
+
+
+
     # generate SSS sequences
     sss_sub0 = np.zeros((168, 62), dtype=complex)
     sss_sub5 = np.zeros((168, 62), dtype=complex)
@@ -188,99 +124,97 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         padded_sss_sub5[i, 1:32] = sss_sub5[i, 31:62]
         padded_sss_sub5[i, 0] = 0
 
+    # # Perform IFFT on SSS sequences
     ifft_sss_sub0 = np.zeros((168, N), dtype=complex)
     ifft_sss_sub5 = np.zeros((168, N), dtype=complex)
 
-    
-
-    
-    
-    
-    # # Perform IFFT on SSS sequences
     for i in range(168):
         ifft_sss_sub0[i, :] = np.fft.ifft((padded_sss_sub0[i, :]), n=N)
         ifft_sss_sub5[i, :] = np.fft.ifft((padded_sss_sub5[i, :]), n=N)
 
     # Perform correlation
     corr_sub0 = np.zeros(
-        (168, len(sss_waveform) + len(ifft_sss_sub0[0, :]) - 1), dtype=complex
+        (168, N + len(ifft_sss_sub0[0, :]) - 1), dtype=complex
     )
     corr_sub5 = np.zeros(
-        (168, len(sss_waveform) + len(ifft_sss_sub5[0, :]) - 1), dtype=complex
+        (168, N + len(ifft_sss_sub5[0, :]) - 1), dtype=complex
     )
 
-    for i in range(168):
-        corr_sub0[i, :] = sig.correlate(sss_waveform, ifft_sss_sub0[i, :], mode="full")
-        corr_sub5[i, :] = sig.correlate(sss_waveform, ifft_sss_sub5[i, :], mode="full")
+    peak_diff_sub0 = np.zeros(2)
+    peak_diff_sub5 = np.zeros(2)
 
-    # find peaks in the correlation
     max_corr_sub0 = np.zeros(168)
     max_corr_sub5 = np.zeros(168)
-    for i in range(168):
-        max_corr_sub0[i] = np.max(np.abs(corr_sub0[i, :]))
-        max_corr_sub5[i] = np.max(np.abs(corr_sub5[i, :]))
-
-    # pick larger correlation of two subframes
-    if np.max(max_corr_sub0) > np.max(max_corr_sub5):
-        NID_1 = np.argmax(max_corr_sub0)
-    else:
-        NID_1 = np.argmax(max_corr_sub5)
-
-    if debug:
-        plt.figure()
-        plt.subplot(2, 1, 1)
-        if np.max(max_corr_sub0) > np.max(max_corr_sub5):
-            plt.plot(ifft_sss_sub0[NID_1, :])
-        else:
-            plt.plot(ifft_sss_sub5[NID_1, :])
-            
-        plt.title(f"SSS NID1: {NID_1}")
-        plt.xlabel("Samples")
-        plt.ylabel("Amplitude")
-        plt.grid()
-        plt.subplot(2, 1, 2)
-        # plt.plot(waveform[pss_center_in_waveform - ((9*(N//128)+N) + N // 2) : pss_center_in_waveform- ((9*(N//128)+N) + N // 2) + N], label="Waveform")
-        plt.plot(waveform[pss_center_in_waveform - ((32*(N//128)+N) + N // 2) : pss_center_in_waveform- ((32*(N//128)+N) + N // 2) + N], label="Waveform")
-        plt.title("SSS in waveform")
-        plt.xlabel("Samples")
-        plt.ylabel("Amplitude")
-        plt.grid()
+    
+    SSS_corr_info = [None, -1, -1, None] # ["subframe", "peak_diff", "NID1", cp_type]
+    for K in range(2):
+        for i in range(168):
+            if K == 0:
+                corr_sub0[i, :] = sig.correlate(sss_waveform_cp_normal, ifft_sss_sub0[i, :], mode="full")
+                corr_sub5[i, :] = sig.correlate(sss_waveform_cp_normal, ifft_sss_sub5[i, :], mode="full")
+            else:
+                corr_sub0[i, :] = sig.correlate(sss_waveform_cp_extended, ifft_sss_sub0[i, :], mode="full")
+                corr_sub5[i, :] = sig.correlate(sss_waveform_cp_extended, ifft_sss_sub5[i, :], mode="full")
         
-        plt.figure()
-        plt.subplot(2, 1, 1)
-        plt.plot(np.fft.fft(sss_waveform, n=N))
-        plt.title("SSS in waveform")
-        plt.xlabel("Samples")
-        plt.ylabel("Magnitude")
-        plt.subplot(2, 1, 2)
-        if np.max(max_corr_sub0) > np.max(max_corr_sub5):
-            plt.plot(np.fft.fft(ifft_sss_sub0[NID_1, :], n=N))
-        else:
-            plt.plot(np.fft.fft(ifft_sss_sub5[NID_1, :], n=N))
-        plt.title("SSS in waveform")
-        plt.xlabel("Samples")
-        plt.ylabel("Magnitude")
-        plt.grid()
-        plt.tight_layout()
-        
-        plt.figure()
-        plt.plot(waveform)    
-            
+        # find peaks in the correlation
+        for i in range(168):
+            max_corr_sub0[i] = np.max(np.abs(corr_sub0[i, :]))
+            max_corr_sub5[i] = np.max(np.abs(corr_sub5[i, :]))
+        # Find the NID1 with the maximum correlation
+        peak_diff_sub0[K] = max_corr_sub0[np.argmax(max_corr_sub0)] - np.mean(max_corr_sub0)
+        peak_diff_sub5[K] = max_corr_sub5[np.argmax(max_corr_sub5)] - np.mean(max_corr_sub5)
+        if debug:
+            fig, axs = plt.subplots(2, 1, figsize=(8.27, 11.69 / 2))
+            plt.rc('font', family='serif')
+
+            axs[0].stem(max_corr_sub0, linefmt='k-', markerfmt='k_', basefmt='k')
+            axs[0].plot(np.mean(max_corr_sub0) * np.ones(168), 'r--', label='Mean')
+            axs[0].plot(np.max(max_corr_sub0) * np.ones(168), 'g--', label='Max')
+            axs[0].stem(np.argmax(max_corr_sub0), max_corr_sub0[np.argmax(max_corr_sub0)], 'b', basefmt=' ', markerfmt='bx', label=f'NID_1 {np.argmax(max_corr_sub0)}')
+            axs[0].legend(loc='lower right', framealpha=1)
+            axs[0].set_title(f"SSS subframe: 0, Max-Mean difference = {peak_diff_sub0[K]:.2f}")
+            axs[0].set_xlabel("NID1")
+            axs[0].set_ylabel("Correlation coefficient")
+            axs[0].grid()
+
+            axs[1].stem(max_corr_sub5, linefmt='k-', markerfmt='k_', basefmt='k')
+            axs[1].plot(np.mean(max_corr_sub5) * np.ones(168), 'r--', label='Mean')
+            axs[1].plot(np.max(max_corr_sub5) * np.ones(168), 'g--', label='Max')
+            axs[1].stem(np.argmax(max_corr_sub5), max_corr_sub5[np.argmax(max_corr_sub5)], 'b', basefmt=' ', markerfmt='bx', label=f'NID_1 {np.argmax(max_corr_sub5)}')
+            axs[1].legend(loc='lower right', framealpha=1)
+            axs[1].set_title(f"SSS subframe: 5, Max-Mean difference = {peak_diff_sub5[K]:.2f}")
+            axs[1].set_xlabel("NID1")
+            axs[1].set_ylabel("Correlation coefficient")
+            axs[1].grid()
+
+            cp_type = "normal" if K == 0 else "extended"
+            fig.suptitle(f"Max correlation with SSS, Cyclic prefix: {cp_type}", fontweight="bold", y=0.975)
+            plt.tight_layout()
+        # Find the NID1 with the maximum correlation
+        if SSS_corr_info[1] < peak_diff_sub0[K] or SSS_corr_info[1] < peak_diff_sub5[K]:
+            SSS_corr_info[3] = "normal" if K == 0 else "extended"   
+            if peak_diff_sub0[K] > peak_diff_sub5[K]:
+                SSS_corr_info[0] = "sub0"
+                SSS_corr_info[1] = peak_diff_sub0[K]
+                SSS_corr_info[2] = np.argmax(max_corr_sub0)
+            else:
+                SSS_corr_info[0] = "sub5"
+                SSS_corr_info[1] = peak_diff_sub5[K]
+                SSS_corr_info[2] = np.argmax(max_corr_sub5)
+                
+    # Print the results
     if debug:
-        plt.figure()
-        plt.subplot(2, 1, 1)
-        plt.stem(max_corr_sub0, linefmt='k-', markerfmt='k_', basefmt='k-')
-        plt.title("Max correlation with SSS sub0")
-        plt.xlabel("NID1")
-        plt.ylabel("Magnitude")
-        plt.grid()
-        plt.subplot(2, 1, 2)
-        plt.stem(max_corr_sub5, linefmt='k-', markerfmt='k_', basefmt='k-')
-        plt.title("Max correlation with SSS sub5")
-        plt.xlabel("NID1")
-        plt.ylabel("Magnitude")
-        plt.grid()
-        plt.tight_layout()
+        print("SSS correlation info:")
+        print("Subframe:", SSS_corr_info[0])
+        print("Peak difference:", SSS_corr_info[1])
+        print("NID1:", SSS_corr_info[2])
+        print("Cyclic prefix type:", SSS_corr_info[3])
+        print("NID2:", NID_2)
+        
+        print("Peak difference sub0:", peak_diff_sub0)
+        print("Peak difference sub5:", peak_diff_sub5)
+    NID_1 = SSS_corr_info[2]
+
 
 
     if debug:
