@@ -59,15 +59,14 @@ def main():
     NID_2 = []
     NID_1 = []
     SSS_flag = False
-
     print("==== LTE Cell Scanner ====")
     print("==== Scan parameters: ===")
-    print("Frequency:", args.frequency)
-    print("Sample Rate:", args.sample_rate)
-    print("Time:", args.time)
-    print("Debug Mode:", args.debug)
-    print("Number of Scans:", args.num_of_scans)
-    print("Time of capture:", time.strftime("%d-%m-%Y %H:%M:%S", time.localtime()))
+    print(f"{'Frequency:':<20}{args.frequency / 1e6:.2f} MHz")
+    print(f"{'Sample Rate:':<20}{args.sample_rate / 1e6:.2f} MS/s")
+    print(f"{'Capture Duration:':<20}{args.time:.2f} seconds")
+    print(f"{'Debug Mode:':<20}{'Enabled' if args.debug else 'Disabled'}")
+    print(f"{'Number of Scans:':<20}{args.num_of_scans} scans")
+    print(f"{'Capture Time:':<20}{time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())}")
     print("==========================")
 
     if args.open is None:
@@ -78,7 +77,7 @@ def main():
                 num_samples=int(args.time * args.sample_rate),
             )
             if waveform is None:
-                print("Error: No samples captured.")
+                print(f"{'Error:':<20} No samples captured.")
                 sys.exit()
             # Scan the waveform, show debug on the last scan if enabled
             if i == args.num_of_scans - 1:
