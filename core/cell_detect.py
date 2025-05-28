@@ -217,8 +217,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
 
 
 
-    if debug:
-        plt.show()
+        
     return NID_2, NID_1
 
 
@@ -371,3 +370,4 @@ if __name__ == "__main__":
     NID_2, NID_1 = lte_cell_scan(waveform, sample_rate=1.92e6, debug=True)
     print("----- Cell IDentification -----")
     print("NCellID:", NID_1 * 3 + NID_2)
+    plt.show()
