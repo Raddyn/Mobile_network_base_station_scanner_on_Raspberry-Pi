@@ -2,7 +2,6 @@ import argparse
 import os
 import sys
 import time
-import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from core.capture import capture_samples
@@ -135,7 +134,6 @@ def main():
             sys.exit()
         else:
             lte_cell_scan.save_waveform(waveform, args.save)
-    plt.show()
     sys.exit()
 
 
