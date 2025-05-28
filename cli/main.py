@@ -80,15 +80,17 @@ def main():
             if waveform is None:
                 print("Error: No samples captured.")
                 sys.exit()
-            # Scan the waveform, show debu on the lastscanif enabled
+            # Scan the waveform, show debug on the last scan if enabled
             if i == args.num_of_scans - 1:
-                NID_2[i], NID_1[i] = lte_cell_scan(
+                nid2, nid1 = lte_cell_scan(
                     waveform, sample_rate=args.sample_rate, debug=args.debug
                 )
+                NID_2.append(nid2)
+                NID_1.append(nid1)
             else:
-                NID_2[i], NID_1[i] = lte_cell_scan(
-                    waveform, sample_rate=args.sample_rate
-                )
+                nid2, nid1 = lte_cell_scan(waveform, sample_rate=args.sample_rate)
+                NID_2.append(nid2)
+                NID_1.append(nid1)
         most_common_nid2, count_nid2 = Counter(NID_2).most_common(1)[0]
         most_common_nid1, count_nid1 = Counter(NID_1).most_common(1)[0]
         if count_nid2 < args.num_of_scans / 2:
