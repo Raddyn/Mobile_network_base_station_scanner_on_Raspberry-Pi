@@ -71,11 +71,13 @@ def main():
 
     if args.open is None:
         for i in range(args.num_of_scans):
+            
             waveform = capture_samples(
                 f_capture=args.frequency,
                 sample_rate=int(args.sample_rate),
                 num_samples=int(args.time * args.sample_rate),
             )
+            time.sleep(0.1)  # Small delay to avoid overloading the device
             if waveform is None:
                 print(f"{'Error:':<20} No samples captured.")
                 sys.exit()
