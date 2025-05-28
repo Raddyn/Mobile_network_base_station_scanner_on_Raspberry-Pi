@@ -60,7 +60,6 @@ def main():
     NID_1 = []
     SSS_flag = False
     print("==== LTE Cell Scanner ====")
-    print("==== Scan parameters: ===")
     print(f"{'Frequency:':<20}{args.frequency / 1e6:.2f} MHz")
     print(f"{'Sample Rate:':<20}{args.sample_rate / 1e6:.2f} MS/s")
     print(f"{'Capture Duration:':<20}{args.time:.2f} seconds")
@@ -72,7 +71,7 @@ def main():
     if args.open is None:
         for i in range(args.num_of_scans):
             if i != 0:
-                time.sleep(1)  # Small delay to avoid overloading the device
+                time.sleep(0.1)  # Small delay to avoid overloading the device
             waveform = capture_samples(
                 f_capture=args.frequency,
                 sample_rate=int(args.sample_rate),
