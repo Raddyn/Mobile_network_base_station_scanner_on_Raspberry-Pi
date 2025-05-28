@@ -96,14 +96,13 @@ def main():
             print("Error: No valid PSS detected")
             sys.exit()
         if count_nid1 < args.num_of_scans / 2:
-            print("Error: No valid SSS detected")
             SSS_flag = True
 
-        if SSS_flag:
-            print("Warning: Failed to detect SSS)")
-            print("NID_2:", most_common_nid2)
         print("NID_2:", most_common_nid2)
-        print("NID_1:", most_common_nid1)
+        if SSS_flag:
+            print("Warning: Failed to detect SSS")
+        else:
+            print("NID_1:", most_common_nid1)
         print("==========================")
         print("Cell ID:", most_common_nid1 * 3 + most_common_nid2)
 
