@@ -216,8 +216,8 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     NID_1 = SSS_corr_info[2]
 
 
-
-        
+    if debug:
+        plt.show()        
     return NID_2, NID_1
 
 
