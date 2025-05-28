@@ -59,19 +59,20 @@ def main():
     NID_2 = []
     NID_1 = []
     SSS_flag = False
-    print("==== LTE Cell Scanner ====")
+    print("==== LTE Cell Scanner ===============================")
     print(f"{'Frequency:':<20}{args.frequency / 1e6:.2f} MHz")
     print(f"{'Sample Rate:':<20}{args.sample_rate / 1e6:.2f} MS/s")
     print(f"{'Capture Duration:':<20}{args.time:.2f} seconds")
     print(f"{'Debug Mode:':<20}{'Enabled' if args.debug else 'Disabled'}")
     print(f"{'Number of Scans:':<20}{args.num_of_scans} scans")
     print(f"{'Capture Time:':<20}{time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())}")
-    print("==========================")
+    print("=====================================================")
 
     if args.open is None:
         for i in range(args.num_of_scans):
             if i != 0:
-                time.sleep(0.1)  # Small delay to avoid overloading the device
+                time.sleep(0.1)
+            
             waveform = capture_samples(
                 f_capture=args.frequency,
                 sample_rate=int(args.sample_rate),
@@ -104,7 +105,7 @@ def main():
             print("Warning: Failed to detect SSS")
         else:
             print("NID_1:", most_common_nid1)
-            print("==========================")
+            print("=====================================================")
             print("Cell ID:", most_common_nid1 * 3 + most_common_nid2)
 
     else:
@@ -123,7 +124,7 @@ def main():
             )
             print("NID_2:", NID_2)
             print("NID_1:", NID_1)
-            print("==========================")
+            print("=====================================================")
             print("Cell ID:", NID_1 * 3 + NID_2)
 
     # =====Check if save directory exists====================================================================
