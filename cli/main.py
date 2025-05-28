@@ -3,43 +3,129 @@ import os
 import sys
 import time
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from core.capture import capture_samples
 from core.cell_detect import lte_cell_scan
+from collections import Counter
 
 
 def main():
     parser = argparse.ArgumentParser(description="LTE Cell Scanner")
     parser.add_argument(
-        "-o", "--open", type=str, required=False, help="Path to the captured waveform file")
+        "-o",
+        "--open",
+        type=str,
+        required=False,
+        help="Path to the captured waveform file",
+    )
     parser.add_argument(
-        "-S", "--save", type=str, required=False, help="Path to save the waveform file")
+        "-S", "--save", type=str, required=False, help="Path to save the waveform file"
+    )
     parser.add_argument(
-        "-f", "--frequency", type=float, required=True, help="Frequency of the captured waveform")
+        "-f",
+        "--frequency",
+        type=float,
+        required=True,
+        help="Frequency of the captured waveform",
+    )
     parser.add_argument(
-        "-s", "--sample_rate", type=float, required=False, default=1.92e6, help="Sample rate of the captured waveform")
+        "-s",
+        "--sample_rate",
+        type=float,
+        required=False,
+        default=1.92e6,
+        help="Sample rate of the captured waveform",
+    )
     parser.add_argument(
-        "-T", "--time", type=float, required=False, default=0.02, help="Time to capture samples")
+        "-T",
+        "--time",
+        type=float,
+        required=False,
+        default=0.02,
+        help="Time to capture samples",
+    )
+    parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
     parser.add_argument(
-        "-d", "--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument(
-        "-n", "--num_of_scans", type=int, required=False, default=3, help="Number of iterations used to scan the current frequency, outputs most common NID1 and NID2")
-    
-    args = parser.parse_args()        
+        "-n",
+        "--num_of_scans",
+        type=int,
+        required=False,
+        default=3,
+        help="Number of iterations used to scan the current frequency, outputs most common NID1 and NID2",
+    )
 
-    #======Check if file exists and is a valid waveform file=========================================    
+    args = parser.parse_args()
+
+    NID_2 = []
+    NID_1 = []
+    SSS_flag = False
+
+    print("==== LTE Cell Scanner ====")
+    print("==== Scan parameters: ===")
+    print("Frequency:", args.frequency)
+    print("Sample Rate:", args.sample_rate)
+    print("Time:", args.time)
+    print("Debug Mode:", args.debug)
+    print("Number of Scans:", args.num_of_scans)
+    print("Time of capture:", time.strftime("%d-%m-%Y %H:%M:%S", time.localtime()))
+    print("==========================")
+
     if args.open is None:
-        waveform = capture_samples(f_capture=args.frequency, sample_rate=int(args.sample_rate), num_samples=int(args.time*args.sample_rate))
+        for i in range(args.num_of_scans):
+            waveform = capture_samples(
+                f_capture=args.frequency,
+                sample_rate=int(args.sample_rate),
+                num_samples=int(args.time * args.sample_rate),
+            )
+            if waveform is None:
+                print("Error: No samples captured.")
+                sys.exit()
+            # Scan the waveform, show debu on the lastscanif enabled
+            if i == args.num_of_scans - 1:
+                NID_2[i], NID_1[i] = lte_cell_scan(
+                    waveform, sample_rate=args.sample_rate, debug=args.debug
+                )
+            else:
+                NID_2[i], NID_1[i] = lte_cell_scan(
+                    waveform, sample_rate=args.sample_rate
+                )
+        most_common_nid2, count_nid2 = Counter(NID_2).most_common(1)[0]
+        most_common_nid1, count_nid1 = Counter(NID_1).most_common(1)[0]
+        if count_nid2 < args.num_of_scans / 2:
+            print("Error: No valid PSS detected")
+            sys.exit()
+        if count_nid1 < args.num_of_scans / 2:
+            print("Error: No valid SSS detected")
+            SSS_flag = True
+
+        if SSS_flag:
+            print("Warning: Failed to detect SSS)")
+            print("NID_2:", most_common_nid2)
+        print("NID_2:", most_common_nid2)
+        print("NID_1:", most_common_nid1)
+        print("==========================")
+        print("Cell ID:", most_common_nid1 * 3 + most_common_nid2)
+
     else:
+        # If the user provided a file, load the waveform from the file
         if not os.path.isfile(args.open):
             print(f"Error: File {args.open} does not exist.")
             sys.exit()
         else:
+            waveform = lte_cell_scan.load_waveform(args.open)
             if waveform is None:
                 print(f"Error: File {args.open} is not a valid waveform file.")
                 sys.exit()
-            waveform = lte_cell_scan.load_waveform(args.open)
-    #=====Check if save directory exists====================================================================    
+            # Scan the waveform, show debug on the last scan if enabled
+            NID_2, NID_1 = lte_cell_scan(
+                waveform, sample_rate=args.sample_rate, debug=args.debug
+            )
+            print("NID_2:", NID_2)
+            print("NID_1:", NID_1)
+            print("==========================")
+            print("Cell ID:", NID_1 * 3 + NID_2)
+
+    # =====Check if save directory exists====================================================================
     if args.save:
         # Save the waveform to a file
         if not os.path.isdir(os.path.dirname(args.save)):
@@ -48,16 +134,8 @@ def main():
         else:
             lte_cell_scan.save_waveform(waveform, args.save)
 
-    #====Scan the waveform for LTE transmission========================================
-    NID_2, NID_1 = lte_cell_scan(waveform,sample_rate=args.sample_rate,debug=args.debug)
-    print("==== Scan parameters ====")
-    print("Frequency:", args.frequency)
-    print("Time:", time.strftime("%d-%m-%Y %H:%M:%S", time.localtime()))
-    #TODO: Add a check to see if the NID_1 and NID_2 are valid,
-    # and if not, print an error message and exit
-    print("===== Found Cell ID =====")
-    print("Cell ID:", NID_1 * 3 + NID_2)
     sys.exit()
-    
+
+
 if __name__ == "__main__":
     main()
