@@ -41,7 +41,6 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         )
         plt.axhline(y=-32 * 15000, color="k", linestyle="-.", linewidth=2)
         plt.axhline(y=32 * 15000, color="k", linestyle="-.", linewidth=2)
-        plt.legend()
         plt.title("Captured Waveform Spectrogram")
         plt.xlabel("Time (s)")
         plt.ylabel("Frequency (Hz)")
