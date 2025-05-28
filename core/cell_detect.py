@@ -258,13 +258,9 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
 
     # Print the results
     if debug:
-        print("SSS correlation info:")
         print("Subframe:", SSS_corr_info[0])
         print("Peak difference:", SSS_corr_info[1])
-        print("NID1:", SSS_corr_info[2])
         print("Cyclic prefix type:", SSS_corr_info[3])
-        print("NID2:", NID_2)
-
         print("Peak difference sub0:", peak_diff_sub0)
         print("Peak difference sub5:", peak_diff_sub5)
     NID_1 = SSS_corr_info[2]
