@@ -8,7 +8,7 @@ PYTHON_SCRIPT="$SCRIPT_DIR/cli/main.py"
 
 # Usage message
 usage() {
-    echo "Usage: $0 -f <frequency> [-o <open_file>] [-S <save_file>] [-s <sample_rate>] [-T <time>] [-d] [-n <num_of_scans>]"
+    echo "Usage: $0 -f <frequency> [-o <open_file>] [-S <save_file>] [-s <sample_rate>] [-T <time>] [-d <debug>] [-n <num_of_scans>]"
     exit 1
 }
 
