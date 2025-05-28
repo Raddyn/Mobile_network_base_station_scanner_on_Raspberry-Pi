@@ -103,8 +103,8 @@ def main():
             print("Warning: Failed to detect SSS")
         else:
             print("NID_1:", most_common_nid1)
-        print("==========================")
-        print("Cell ID:", most_common_nid1 * 3 + most_common_nid2)
+            print("==========================")
+            print("Cell ID:", most_common_nid1 * 3 + most_common_nid2)
 
     else:
         # If the user provided a file, load the waveform from the file
