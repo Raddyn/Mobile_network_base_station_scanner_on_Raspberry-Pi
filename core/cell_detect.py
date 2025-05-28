@@ -10,22 +10,44 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
+    '''
+    Scan the waveform for LTE cell synchronization sequences (PSS and SSS).
+    
+    Parameters:
+        waveform (np.ndarray): The captured waveform.
+        sample_rate (float): The sample rate of the waveform. Default is 1.92e6.
+        debug (bool): If True, plots the spectrogram and correlation results. Default is False.
+        
+    Returns:
+        NID_2 (int): The detected NID2 value (0, 1, or 2).
+        NID_1 (int): The detected NID1 value (0 to 167).
+    ''' 
     # Parameters
     N = 128
     NID_1 = None
     NID_2 = None
 
     # show the waveform using spectrogram
-    if debug:	
-        plt.figure()
-        plt.specgram(waveform, Fs=sample_rate, NFFT=int(sample_rate//15000), noverlap=int((sample_rate//15000)/2))
-        plt.title("Waveform Spectrogram")
+    if debug:
+        plt.figure(figsize=(8.27, 11.69 / 2))
+        plt.rc("font", family="serif")
+        plt.specgram(
+            waveform,
+            Fs=sample_rate,
+            NFFT=int(sample_rate // 15000),
+            noverlap=int((sample_rate // 15000) / 2),
+            cmap="viridis",
+            scale="dB",
+        )
+        plt.axhline(y=-32 * 15000, color="k", linestyle="-.", linewidth=2)
+        plt.axhline(y=32 * 15000, color="k", linestyle="-.", linewidth=2)
+        plt.legend()
+        plt.title("Captured Waveform Spectrogram")
         plt.xlabel("Time (s)")
         plt.ylabel("Frequency (Hz)")
         plt.colorbar(label="Magnitude")
         plt.grid()
-    
-    
+
     # generate PSS sequences
     pss = np.zeros((3, 62), dtype=complex)
     for i in range(3):
@@ -85,24 +107,26 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         plt.grid()
         plt.tight_layout()
 
-
     # Locate the PSS sequence in the waveform
     pss_center_in_waveform = np.argmax(np.abs(corr[NID_2, :]))
 
-
     # Locate the SSS sequences in the waveform
-    sss_waveform_cp_normal = normalise_signal(waveform[pss_center_in_waveform - ((9*(N//128)+N) + N // 2) : pss_center_in_waveform- ((9*(N//128)+N) + N // 2) + N])
-    plt.figure()
-    plt.plot((sss_waveform_cp_normal))
-    plt.title("SSS in waveform normal CP")
-    sss_waveform_cp_extended = normalise_signal(waveform[pss_center_in_waveform - ((32*(N//128)+N) + N // 2) : pss_center_in_waveform- ((32*(N//128)+N) + N // 2) + N])
-    plt.figure()
-    plt.plot((sss_waveform_cp_extended))
-    plt.title("SSS in waveform extended CP")
-    
-    
-
-
+    sss_waveform_cp_normal = normalise_signal(
+        waveform[
+            pss_center_in_waveform
+            - ((9 * (N // 128) + N) + N // 2) : pss_center_in_waveform
+            - ((9 * (N // 128) + N) + N // 2)
+            + N
+        ]
+    )
+    sss_waveform_cp_extended = normalise_signal(
+        waveform[
+            pss_center_in_waveform
+            - ((32 * (N // 128) + N) + N // 2) : pss_center_in_waveform
+            - ((32 * (N // 128) + N) + N // 2)
+            + N
+        ]
+    )
 
     # generate SSS sequences
     sss_sub0 = np.zeros((168, 62), dtype=complex)
@@ -133,66 +157,96 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         ifft_sss_sub5[i, :] = np.fft.ifft((padded_sss_sub5[i, :]), n=N)
 
     # Perform correlation
-    corr_sub0 = np.zeros(
-        (168, N + len(ifft_sss_sub0[0, :]) - 1), dtype=complex
-    )
-    corr_sub5 = np.zeros(
-        (168, N + len(ifft_sss_sub5[0, :]) - 1), dtype=complex
-    )
+    corr_sub0 = np.zeros((168, N + len(ifft_sss_sub0[0, :]) - 1), dtype=complex)
+    corr_sub5 = np.zeros((168, N + len(ifft_sss_sub5[0, :]) - 1), dtype=complex)
 
     peak_diff_sub0 = np.zeros(2)
     peak_diff_sub5 = np.zeros(2)
 
     max_corr_sub0 = np.zeros(168)
     max_corr_sub5 = np.zeros(168)
-    
-    SSS_corr_info = [None, -1, -1, None] # ["subframe", "peak_diff", "NID1", cp_type]
+
+    SSS_corr_info = [None, -1, -1, None]  # ["subframe", "peak_diff", "NID1", cp_type]
     for K in range(2):
         for i in range(168):
             if K == 0:
-                corr_sub0[i, :] = sig.correlate(sss_waveform_cp_normal, ifft_sss_sub0[i, :], mode="full")
-                corr_sub5[i, :] = sig.correlate(sss_waveform_cp_normal, ifft_sss_sub5[i, :], mode="full")
+                corr_sub0[i, :] = sig.correlate(
+                    sss_waveform_cp_normal, ifft_sss_sub0[i, :], mode="full"
+                )
+                corr_sub5[i, :] = sig.correlate(
+                    sss_waveform_cp_normal, ifft_sss_sub5[i, :], mode="full"
+                )
             else:
-                corr_sub0[i, :] = sig.correlate(sss_waveform_cp_extended, ifft_sss_sub0[i, :], mode="full")
-                corr_sub5[i, :] = sig.correlate(sss_waveform_cp_extended, ifft_sss_sub5[i, :], mode="full")
-        
+                corr_sub0[i, :] = sig.correlate(
+                    sss_waveform_cp_extended, ifft_sss_sub0[i, :], mode="full"
+                )
+                corr_sub5[i, :] = sig.correlate(
+                    sss_waveform_cp_extended, ifft_sss_sub5[i, :], mode="full"
+                )
+
         # find peaks in the correlation
         for i in range(168):
             max_corr_sub0[i] = np.max(np.abs(corr_sub0[i, :]))
             max_corr_sub5[i] = np.max(np.abs(corr_sub5[i, :]))
         # Find the NID1 with the maximum correlation
-        peak_diff_sub0[K] = max_corr_sub0[np.argmax(max_corr_sub0)] - np.mean(max_corr_sub0)
-        peak_diff_sub5[K] = max_corr_sub5[np.argmax(max_corr_sub5)] - np.mean(max_corr_sub5)
+        peak_diff_sub0[K] = max_corr_sub0[np.argmax(max_corr_sub0)] - np.mean(
+            max_corr_sub0
+        )
+        peak_diff_sub5[K] = max_corr_sub5[np.argmax(max_corr_sub5)] - np.mean(
+            max_corr_sub5
+        )
         if debug:
             fig, axs = plt.subplots(2, 1, figsize=(8.27, 11.69 / 2))
-            plt.rc('font', family='serif')
+            plt.rc("font", family="serif")
 
-            axs[0].stem(max_corr_sub0, linefmt='k-', markerfmt='k_', basefmt='k')
-            axs[0].plot(np.mean(max_corr_sub0) * np.ones(168), 'r--', label='Mean')
-            axs[0].plot(np.max(max_corr_sub0) * np.ones(168), 'g--', label='Max')
-            axs[0].stem(np.argmax(max_corr_sub0), max_corr_sub0[np.argmax(max_corr_sub0)], 'b', basefmt=' ', markerfmt='bx', label=f'NID_1 {np.argmax(max_corr_sub0)}')
-            axs[0].legend(loc='lower right', framealpha=1)
-            axs[0].set_title(f"SSS subframe: 0, Max-Mean difference = {peak_diff_sub0[K]:.2f}")
+            axs[0].stem(max_corr_sub0, linefmt="k-", markerfmt="k_", basefmt="k")
+            axs[0].plot(np.mean(max_corr_sub0) * np.ones(168), "r--", label="Mean")
+            axs[0].plot(np.max(max_corr_sub0) * np.ones(168), "g--", label="Max")
+            axs[0].stem(
+                np.argmax(max_corr_sub0),
+                max_corr_sub0[np.argmax(max_corr_sub0)],
+                "b",
+                basefmt=" ",
+                markerfmt="bx",
+                label=f"NID_1 {np.argmax(max_corr_sub0)}",
+            )
+            axs[0].legend(loc="lower right", framealpha=1)
+            axs[0].set_title(
+                f"SSS subframe: 0, Max-Mean difference = {peak_diff_sub0[K]:.2f}"
+            )
             axs[0].set_xlabel("NID1")
             axs[0].set_ylabel("Correlation coefficient")
             axs[0].grid()
 
-            axs[1].stem(max_corr_sub5, linefmt='k-', markerfmt='k_', basefmt='k')
-            axs[1].plot(np.mean(max_corr_sub5) * np.ones(168), 'r--', label='Mean')
-            axs[1].plot(np.max(max_corr_sub5) * np.ones(168), 'g--', label='Max')
-            axs[1].stem(np.argmax(max_corr_sub5), max_corr_sub5[np.argmax(max_corr_sub5)], 'b', basefmt=' ', markerfmt='bx', label=f'NID_1 {np.argmax(max_corr_sub5)}')
-            axs[1].legend(loc='lower right', framealpha=1)
-            axs[1].set_title(f"SSS subframe: 5, Max-Mean difference = {peak_diff_sub5[K]:.2f}")
+            axs[1].stem(max_corr_sub5, linefmt="k-", markerfmt="k_", basefmt="k")
+            axs[1].plot(np.mean(max_corr_sub5) * np.ones(168), "r--", label="Mean")
+            axs[1].plot(np.max(max_corr_sub5) * np.ones(168), "g--", label="Max")
+            axs[1].stem(
+                np.argmax(max_corr_sub5),
+                max_corr_sub5[np.argmax(max_corr_sub5)],
+                "b",
+                basefmt=" ",
+                markerfmt="bx",
+                label=f"NID_1 {np.argmax(max_corr_sub5)}",
+            )
+            axs[1].legend(loc="lower right", framealpha=1)
+            axs[1].set_title(
+                f"SSS subframe: 5, Max-Mean difference = {peak_diff_sub5[K]:.2f}"
+            )
             axs[1].set_xlabel("NID1")
             axs[1].set_ylabel("Correlation coefficient")
             axs[1].grid()
 
             cp_type = "normal" if K == 0 else "extended"
-            fig.suptitle(f"Max correlation with SSS, Cyclic prefix: {cp_type}", fontweight="bold", y=0.975)
+            fig.suptitle(
+                f"Max correlation with SSS, Cyclic prefix: {cp_type}",
+                fontweight="bold",
+                y=0.975,
+            )
             plt.tight_layout()
         # Find the NID1 with the maximum correlation
         if SSS_corr_info[1] < peak_diff_sub0[K] or SSS_corr_info[1] < peak_diff_sub5[K]:
-            SSS_corr_info[3] = "normal" if K == 0 else "extended"   
+            SSS_corr_info[3] = "normal" if K == 0 else "extended"
             if peak_diff_sub0[K] > peak_diff_sub5[K]:
                 SSS_corr_info[0] = "sub0"
                 SSS_corr_info[1] = peak_diff_sub0[K]
@@ -201,7 +255,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
                 SSS_corr_info[0] = "sub5"
                 SSS_corr_info[1] = peak_diff_sub5[K]
                 SSS_corr_info[2] = np.argmax(max_corr_sub5)
-                
+
     # Print the results
     if debug:
         print("SSS correlation info:")
@@ -210,14 +264,13 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         print("NID1:", SSS_corr_info[2])
         print("Cyclic prefix type:", SSS_corr_info[3])
         print("NID2:", NID_2)
-        
+
         print("Peak difference sub0:", peak_diff_sub0)
         print("Peak difference sub5:", peak_diff_sub5)
     NID_1 = SSS_corr_info[2]
 
-
     if debug:
-        plt.show()        
+        plt.show()
     return NID_2, NID_1
 
 
@@ -334,6 +387,7 @@ def sss_gen(NID1, NID2):
 
     return sss0, sss5
 
+
 def normalise_signal(signal):
     """
     Normalise the signal to the range [-1, 1].
@@ -359,9 +413,9 @@ def normalise_signal(signal):
 
 # Test script
 if __name__ == "__main__":
-    data = sio.loadmat('data2.mat')
-    iWave = data['iWave']
-    qWave = data['qWave']
+    data = sio.loadmat("data2.mat")
+    iWave = data["iWave"]
+    qWave = data["qWave"]
     waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
     waveform = np.load("LTE_cell_192_128.npy")
