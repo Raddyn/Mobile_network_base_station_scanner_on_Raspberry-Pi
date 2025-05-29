@@ -27,25 +27,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     NID_1 = None
     NID_2 = None
 
-    # show the waveform using spectrogram
-    if debug:
-        plt.figure(figsize=(8.27, 11.69 / 2))
-        plt.rc("font", family="serif")
-        plt.specgram(
-            waveform,
-            Fs=sample_rate,
-            NFFT=int(sample_rate // 15000),
-            noverlap=int((sample_rate // 15000) / 2),
-            cmap="viridis",
-            scale="dB",
-        )
-        plt.axhline(y=-32 * 15000, color="k", linestyle="-.", linewidth=2)
-        plt.axhline(y=32 * 15000, color="k", linestyle="-.", linewidth=2)
-        plt.title("Captured Waveform Spectrogram", fontweight="bold")
-        plt.xlabel("Time (s)")
-        plt.ylabel("Frequency (Hz)")
-        plt.colorbar(label="Magnitude")
-        plt.grid()
+   
 
     # generate PSS sequences
     pss = np.zeros((3, 62), dtype=complex)
@@ -86,35 +68,28 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         max_corr[i] = np.max(np.abs(corr[i, :]))
     NID_2 = np.argmax(max_corr)
 
-    if debug:
-        plt.figure(figsize=(8.27, 11.69 / 2))
-        plt.rc("font", family="serif")
-        plt.stem(max_corr, linefmt="k-", markerfmt="kx", basefmt="k-")
-        plt.plot(np.max(max_corr) * np.ones(3), "r--", label=f"Cell NID_2: {NID_2}")
-        plt.xticks(np.arange(3), [0, 1, 2])
-        plt.title("PSS Correlation", fontweight="bold")
-        plt.xlabel("NID_2")
-        plt.ylabel("Correlation coefficient")
-        plt.legend(loc="lower right", framealpha=1)
-        plt.grid()
+
 
     # Locate the PSS sequence in the waveform
     pss_center_in_waveform = np.argmax(np.abs(corr[NID_2, :]))
 
     # Locate the SSS sequences in the waveform
-    sss_waveform_cp_normal = waveform[
-        pss_center_in_waveform
-        - ((9 * (N // 128) + N) + N // 2) : pss_center_in_waveform
-        - ((9 * (N // 128) + N) + N // 2)
-        + N
-    ]
+    try:
+        sss_waveform_cp_normal = waveform[
+            pss_center_in_waveform
+            - ((9 * (N // 128) + N) + N // 2) : pss_center_in_waveform
+            - ((9 * (N // 128) + N) + N // 2)
+            + N
+        ]
 
-    sss_waveform_cp_extended = waveform[
-        pss_center_in_waveform
-        - ((32 * (N // 128) + N) + N // 2) : pss_center_in_waveform
-        - ((32 * (N // 128) + N) + N // 2)
-        + N
-    ]
+        sss_waveform_cp_extended = waveform[
+            pss_center_in_waveform
+            - ((32 * (N // 128) + N) + N // 2) : pss_center_in_waveform
+            - ((32 * (N // 128) + N) + N // 2)
+            + N
+        ]
+    except IndexError:
+        return -1, -1
 
     # generate SSS sequences
     sss_sub0 = np.zeros((168, 62), dtype=complex)
@@ -253,6 +228,37 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         print("Peak difference sub5:", peak_diff_sub5)
     NID_1 = SSS_corr_info[2]
 
+     # show the waveform using spectrogram
+    if debug:
+        plt.figure(figsize=(8.27, 11.69 / 2))
+        plt.rc("font", family="serif")
+        plt.specgram(
+            waveform,
+            Fs=sample_rate,
+            NFFT=int(sample_rate // 15000),
+            noverlap=int((sample_rate // 15000) / 2),
+            cmap="viridis",
+            scale="dB",
+        )
+        plt.axhline(y=-32 * 15000, color="k", linestyle="-.", linewidth=2)
+        plt.axhline(y=32 * 15000, color="k", linestyle="-.", linewidth=2)
+        plt.title("Captured Waveform Spectrogram", fontweight="bold")
+        plt.xlabel("Time (s)")
+        plt.ylabel("Frequency (Hz)")
+        plt.colorbar(label="Magnitude")
+        plt.grid()
+    
+        plt.figure(figsize=(8.27, 11.69 / 2))
+        plt.rc("font", family="serif")
+        plt.stem(max_corr, linefmt="k-", markerfmt="kx", basefmt="k-")
+        plt.plot(np.max(max_corr) * np.ones(3), "r--", label=f"Cell NID_2: {NID_2}")
+        plt.xticks(np.arange(3), [0, 1, 2])
+        plt.title("PSS Correlation", fontweight="bold")
+        plt.xlabel("NID_2")
+        plt.ylabel("Correlation coefficient")
+        plt.legend(loc="lower right", framealpha=1)
+        plt.grid()
+    
     if debug:
         plt.show()
     return NID_2, NID_1
