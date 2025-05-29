@@ -73,14 +73,21 @@ def main():
             if i != 0:
                 time.sleep(0.1)
             
-            waveform = capture_samples(
-                f_capture=args.frequency,
-                sample_rate=int(args.sample_rate),
-                num_samples=int(args.time * args.sample_rate),
-            )
-            if waveform is None:
-                print(f"{'Error:':<20} No samples captured.")
-                sys.exit()
+            timeout = 0
+            while True:
+                waveform = capture_samples(
+                    f_capture=args.frequency,
+                    sample_rate=int(args.sample_rate),
+                    num_samples=int(args.time * args.sample_rate),
+                )
+                if waveform is not None and len(waveform) > 0:
+                    break
+                timeout += 1
+                if timeout > 5:  # Set a maximum number of retries
+                    print(f"{'Error:':<20} No samples captured after multiple attempts.")
+                    sys.exit()
+                print(f"{'Warning:':<20} No samples captured, retrying... (Attempt {timeout})")
+                time.sleep(0.5)  # Add a small delay before retrying
             # Scan the waveform, show debug on the last scan if enabled
             if i == args.num_of_scans - 1:
                 nid2, nid1 = lte_cell_scan(
