@@ -80,6 +80,7 @@ def main():
                 )
                 if waveform is not None and len(waveform) > 0:
                     break
+
                 timeout += 1
                 if timeout > 3:  
                     print(f"{'Error:':<20} No samples captured after multiple attempts.")
@@ -92,10 +93,18 @@ def main():
                 nid2, nid1 = lte_cell_scan(
                     waveform, sample_rate=args.sample_rate, debug=args.debug
                 )
+                if nid2 == -1 or nid1 == -1:
+                    if i > 0:
+                        i -= 1
+                    break
                 NID_2.append(nid2)
                 NID_1.append(nid1)
             else:
                 nid2, nid1 = lte_cell_scan(waveform, sample_rate=args.sample_rate)
+                if nid2 == -1 or nid1 == -1:
+                    if i > 0:
+                        i -= 1
+                    break
                 NID_2.append(nid2)
                 NID_1.append(nid1)
         most_common_nid2, count_nid2 = Counter(NID_2).most_common(1)[0]
