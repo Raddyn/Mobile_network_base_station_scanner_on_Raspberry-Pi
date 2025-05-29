@@ -110,18 +110,18 @@ def main():
         most_common_nid2, count_nid2 = Counter(NID_2).most_common(1)[0]
         most_common_nid1, count_nid1 = Counter(NID_1).most_common(1)[0]
         if count_nid2 < args.num_of_scans / 2:
-            print("Error: No valid PSS detected")
+            print(f"{'Error:':>20} No valid PSS detected")
             sys.exit()
         if count_nid1 < args.num_of_scans / 2:
             SSS_flag = True
 
-        print("NID_2:", most_common_nid2)
+        print(f"{'NID_2:':>20} {most_common_nid2}")
         if SSS_flag:
-            print("Warning: Failed to detect SSS")
+            print(f"{'Warning:':>20} No fix on SSS")
         else:
-            print("NID_1:", most_common_nid1)
+            print(f"{'NID_1:':>20} {most_common_nid1}")
             print("=====================================================")
-            print("Cell ID:", most_common_nid1 * 3 + most_common_nid2)
+            print(f"{'Cell ID:':>20} {most_common_nid1 * 3 + most_common_nid2}")
 
     else:
         # If the user provided a file, load the waveform from the file
@@ -137,10 +137,10 @@ def main():
             NID_2, NID_1 = lte_cell_scan(
                 waveform, sample_rate=args.sample_rate, debug=args.debug
             )
-            print("NID_2:", NID_2)
-            print("NID_1:", NID_1)
+            print(f"{'NID_2:':>20}{NID_2}")
+            print(f"{'NID_1:':>20}{NID_1}")
             print("=====================================================")
-            print("Cell ID:", NID_1 * 3 + NID_2)
+            print(f"{'Cell ID:':>20} {NID_1 * 3 + NID_2}")
 
     # =====Check if save directory exists====================================================================
     if args.save:
