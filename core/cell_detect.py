@@ -133,19 +133,23 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     for K in range(2):
         for i in range(168):
             if K == 0:
-                corr_sub0[i, :] = sig.correlate(
-                    sss_waveform_cp_normal, ifft_sss_sub0[i, :], mode="full"
-                )
-                corr_sub5[i, :] = sig.correlate(
-                    sss_waveform_cp_normal, ifft_sss_sub5[i, :], mode="full"
-                )
-            else:
-                corr_sub0[i, :] = sig.correlate(
-                    sss_waveform_cp_extended, ifft_sss_sub0[i, :], mode="full"
-                )
-                corr_sub5[i, :] = sig.correlate(
-                    sss_waveform_cp_extended, ifft_sss_sub5[i, :], mode="full"
-                )
+                try:
+                    if K == 0:
+                        corr_sub0[i, :] = sig.correlate(
+                            sss_waveform_cp_normal, ifft_sss_sub0[i, :], mode="full"
+                        )
+                        corr_sub5[i, :] = sig.correlate(
+                            sss_waveform_cp_normal, ifft_sss_sub5[i, :], mode="full"
+                        )
+                    else:
+                        corr_sub0[i, :] = sig.correlate(
+                            sss_waveform_cp_extended, ifft_sss_sub0[i, :], mode="full"
+                        )
+                        corr_sub5[i, :] = sig.correlate(
+                            sss_waveform_cp_extended, ifft_sss_sub5[i, :], mode="full"
+                        )
+                except Exception as e:
+                    return -1, -1
 
         # find peaks in the correlation
         for i in range(168):
