@@ -83,11 +83,12 @@ def main():
                 if waveform is not None and len(waveform) > 0:
                     break
                 timeout += 1
-                if timeout > 5:  # Set a maximum number of retries
+                if timeout > 3:  
                     print(f"{'Error:':<20} No samples captured after multiple attempts.")
                     sys.exit()
                 print(f"{'Warning:':<20} No samples captured, retrying... (Attempt {timeout})")
-                time.sleep(0.5)  # Add a small delay before retrying
+                time.sleep(0.5)
+                
             # Scan the waveform, show debug on the last scan if enabled
             if i == args.num_of_scans - 1:
                 nid2, nid1 = lte_cell_scan(
