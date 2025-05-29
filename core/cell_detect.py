@@ -102,22 +102,19 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     pss_center_in_waveform = np.argmax(np.abs(corr[NID_2, :]))
 
     # Locate the SSS sequences in the waveform
-    sss_waveform_cp_normal = normalise_signal(
-        waveform[
-            pss_center_in_waveform
-            - ((9 * (N // 128) + N) + N // 2) : pss_center_in_waveform
-            - ((9 * (N // 128) + N) + N // 2)
-            + N
-        ]
-    )
-    sss_waveform_cp_extended = normalise_signal(
-        waveform[
-            pss_center_in_waveform
-            - ((32 * (N // 128) + N) + N // 2) : pss_center_in_waveform
-            - ((32 * (N // 128) + N) + N // 2)
-            + N
-        ]
-    )
+    sss_waveform_cp_normal = waveform[
+        pss_center_in_waveform
+        - ((9 * (N // 128) + N) + N // 2) : pss_center_in_waveform
+        - ((9 * (N // 128) + N) + N // 2)
+        + N
+    ]
+
+    sss_waveform_cp_extended = waveform[
+        pss_center_in_waveform
+        - ((32 * (N // 128) + N) + N // 2) : pss_center_in_waveform
+        - ((32 * (N // 128) + N) + N // 2)
+        + N
+    ]
 
     # generate SSS sequences
     sss_sub0 = np.zeros((168, 62), dtype=complex)
