@@ -70,8 +70,6 @@ def main():
 
     if args.open is None:
         for i in range(args.num_of_scans):
-            if i != 0:
-                time.sleep(0.1)
             
             timeout = 0
             while True:
