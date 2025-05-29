@@ -10,18 +10,18 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
-    '''
+    """
     Scan the waveform for LTE cell synchronization sequences (PSS and SSS).
-    
+
     Parameters:
         waveform (np.ndarray): The captured waveform.
         sample_rate (float): The sample rate of the waveform. Default is 1.92e6.
         debug (bool): If True, plots the spectrogram and correlation results. Default is False.
-        
+
     Returns:
         NID_2 (int): The detected NID2 value (0, 1, or 2).
         NID_1 (int): The detected NID1 value (0 to 167).
-    ''' 
+    """
     # Parameters
     N = 128
     NID_1 = None
@@ -41,7 +41,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         )
         plt.axhline(y=-32 * 15000, color="k", linestyle="-.", linewidth=2)
         plt.axhline(y=32 * 15000, color="k", linestyle="-.", linewidth=2)
-        plt.title("Captured Waveform Spectrogram")
+        plt.title("Captured Waveform Spectrogram", fontweight="bold")
         plt.xlabel("Time (s)")
         plt.ylabel("Frequency (Hz)")
         plt.colorbar(label="Magnitude")
@@ -76,19 +76,9 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
 
     # pad the waveform
     waveform = np.pad(waveform, (N // 2, -1 + N // 2), mode="constant")
-    if debug:
-        plt.figure()
     # Perform correlation
     for i in range(3):
         corr[i, :] = sig.correlate(waveform, ifft_pss_sequences[i, :], mode="same")
-        if debug:
-            plt.subplot(4, 1, i + 1)
-            plt.plot(np.abs(corr[i, :]))
-            plt.title(f"Correlation with PSS {i}")
-            plt.xlabel("Samples")
-            plt.ylabel("Magnitude")
-            plt.ylim(0, 3)
-            plt.grid()
 
     # find peaks in the correlation
     max_corr = np.zeros(3)
@@ -97,14 +87,16 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
     NID_2 = np.argmax(max_corr)
 
     if debug:
-        plt.subplot(4, 1, 4)
-        plt.stem(max_corr)
-        plt.title("Max correlation")
-        plt.xlabel("NID2")
-        plt.ylabel("Magnitude")
-        plt.ylim(0, 3)
+        plt.figure(figsize=(8.27, 11.69 / 2))
+        plt.rc("font", family="serif")
+        plt.stem(max_corr, linefmt="k-", markerfmt="kx", basefmt="k-")
+        plt.plot(np.max(max_corr) * np.ones(3), "r--", label=f"Cell NID_2: {NID_2}")
+        plt.xticks(np.arange(3), [0, 1, 2])
+        plt.title("PSS Correlation", fontweight="bold")
+        plt.xlabel("NID_2")
+        plt.ylabel("Correlation coefficient")
+        plt.legend(loc="lower right", framealpha=1)
         plt.grid()
-        plt.tight_layout()
 
     # Locate the PSS sequence in the waveform
     pss_center_in_waveform = np.argmax(np.abs(corr[NID_2, :]))
@@ -408,12 +400,12 @@ def normalise_signal(signal):
 
 # Test script
 if __name__ == "__main__":
-    data = sio.loadmat("data2.mat")
-    iWave = data["iWave"]
-    qWave = data["qWave"]
-    waveform = iWave.squeeze() + 1j * qWave.squeeze()
+    # data = sio.loadmat("data2.mat")
+    # iWave = data["iWave"]
+    # qWave = data["qWave"]
+    # waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
-    waveform = np.load("LTE_cell_192_128.npy")
+    waveform = np.load("tests/LTE_cell_192_128.npy")
 
     # Load the captured waveform
     NID_2, NID_1 = lte_cell_scan(waveform, sample_rate=1.92e6, debug=True)
