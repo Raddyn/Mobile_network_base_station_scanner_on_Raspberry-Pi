@@ -135,7 +135,7 @@ def main():
             else:
                 print(f"{'NID_1:':<20} {most_common_nid1}")
                 print("=====================================================")
-                print(f"\033[1m{'Cell ID:':<20} {most_common_nid1 * 3 + most_common_nid2}\033[0m")
+                print(f"{'Cell ID:':<20} {most_common_nid1 * 3 + most_common_nid2}")
             first_run = False
     else:
         # If the user provided a file, load the waveform from the file
@@ -154,7 +154,7 @@ def main():
             print(f"{'NID_2:':<20}{NID_2}")
             print(f"{'NID_1:':<20}{NID_1}")
             print("=====================================================")
-            print(f"\033[1m{'Cell ID:':<20} {NID_1 * 3 + NID_2}\033[0m")
+            print(f"{'Cell ID:':<20} {NID_1 * 3 + NID_2}")
 
     # =====Check if save directory exists====================================================================
     if args.save:
