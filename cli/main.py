@@ -13,15 +13,14 @@ def main():
     parser = argparse.ArgumentParser(description="LTE Cell Scanner")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        "-o", "--open",
-        type=str,
-        help="Path to the captured waveform file"
+        "-o", "--open", type=str, help="Path to the captured waveform file"
     )
     group.add_argument(
-        "-f", "--frequency",
+        "-f",
+        "--frequency",
         type=float,
         nargs="+",
-        help="Frequency of the captured waveform"
+        help="Frequency of the captured waveform",
     )
     parser.add_argument(
         "-S", "--save", type=str, required=False, help="Path to save the waveform file"
@@ -60,9 +59,7 @@ def main():
     )
     args = parser.parse_args()
 
-  
     first_run = True
-
 
     if args.open is None:
         for freq in args.frequency:
@@ -80,11 +77,12 @@ def main():
             print(f"{'Capture Duration:':<20}{args.time:.2f} seconds")
             print(f"{'Debug Mode:':<20}{'Enabled' if args.debug else 'Disabled'}")
             print(f"{'Number of Scans:':<20}{args.num_of_scans} scans")
-            print(f"{'Capture Time:':<20}{time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())}")
+            print(
+                f"{'Capture Time:':<20}{time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())}"
+            )
             print("=====================================================")
 
             for i in range(args.num_of_scans):
-                
                 timeout = 0
                 while True:
                     waveform = capture_samples(
@@ -96,16 +94,23 @@ def main():
                         break
 
                     timeout += 1
-                    if timeout > 3:  
-                        print(f"{'Error:':<20} No samples captured after multiple attempts.")
+                    if timeout > 3:
+                        print(
+                            f"{'Error:':<20} No samples captured after multiple attempts."
+                        )
                         sys.exit()
-                    print(f"{'Warning:':<20} No samples captured, retrying... (Attempt {timeout})")
+                    print(
+                        f"{'Warning:':<20} No samples captured, retrying... (Attempt {timeout})"
+                    )
                     time.sleep(0.5)
-                    
+
                 # Scan the waveform, show debug on the last scan if enabled
                 if i == args.num_of_scans - 1:
                     nid2, nid1 = lte_cell_scan(
-                        waveform, sample_rate=args.sample_rate, debug=args.debug, N=args.FFT_size
+                        waveform,
+                        sample_rate=args.sample_rate,
+                        debug=args.debug,
+                        N=args.FFT_size,
                     )
                     if nid2 == -1 or nid1 == -1:
                         if i > 0:
@@ -114,7 +119,9 @@ def main():
                     NID_2.append(nid2)
                     NID_1.append(nid1)
                 else:
-                    nid2, nid1 = lte_cell_scan(waveform, sample_rate=args.sample_rate, N=args.FFT_size)
+                    nid2, nid1 = lte_cell_scan(
+                        waveform, sample_rate=args.sample_rate, N=args.FFT_size
+                    )
                     if nid2 == -1 or nid1 == -1:
                         if i > 0:
                             i -= 1
