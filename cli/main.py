@@ -97,7 +97,7 @@ def main():
             # Scan the waveform, show debug on the last scan if enabled
             if i == args.num_of_scans - 1:
                 nid2, nid1 = lte_cell_scan(
-                    waveform, sample_rate=args.sample_rate, debug=args.debug, FFT_size=args.FFT_size
+                    waveform, sample_rate=args.sample_rate, debug=args.debug, N=args.FFT_size
                 )
                 if nid2 == -1 or nid1 == -1:
                     if i > 0:
@@ -106,7 +106,7 @@ def main():
                 NID_2.append(nid2)
                 NID_1.append(nid1)
             else:
-                nid2, nid1 = lte_cell_scan(waveform, sample_rate=args.sample_rate, FFT_size=args.FFT_size)
+                nid2, nid1 = lte_cell_scan(waveform, sample_rate=args.sample_rate, N=args.FFT_size)
                 if nid2 == -1 or nid1 == -1:
                     if i > 0:
                         i -= 1
