@@ -63,10 +63,14 @@ def main():
     NID_2 = []
     NID_1 = []
     SSS_flag = False
+    first_run = True
+
 
     print("==== LTE Cell Scanner ===============================")
     if args.open is None:
         for freq in args.frequency:
+            if not first_run:
+                print("\n")
             if freq < 0 or freq > 6e9:
                 print(f"Error: Frequency {freq} Hz is out of range (0 - 6 GHz).")
                 sys.exit()
@@ -132,7 +136,7 @@ def main():
                 print(f"{'NID_1:':<20} {most_common_nid1}")
                 print("=====================================================")
                 print(f"\033[1m{'Cell ID:':<20} {most_common_nid1 * 3 + most_common_nid2}\033[0m")
-
+            first_run = False
     else:
         # If the user provided a file, load the waveform from the file
         if not os.path.isfile(args.open):
