@@ -9,7 +9,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
-def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
+def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False, N=128):
     """
     Scan the waveform for LTE cell synchronization sequences (PSS and SSS).
 
@@ -23,11 +23,28 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
         NID_1 (int): The detected NID1 value (0 to 167).
     """
     # Parameters
-    N = 128
     NID_1 = None
     NID_2 = None
 
-   
+    if debug:
+        plt.figure(figsize=(8.27, 11.69 / 2))
+        plt.rc("font", family="serif")
+        plt.specgram(
+            waveform,
+            Fs=sample_rate,
+            NFFT=int(sample_rate // 15000),
+            noverlap=int((sample_rate // 15000) / 2),
+            cmap="viridis",
+            scale="dB",
+        )
+        plt.axhline(y=-32 * 15000, color="k", linestyle="-.", linewidth=2)
+        plt.axhline(y=32 * 15000, color="k", linestyle="-.", linewidth=2)
+        plt.title("Captured Waveform Spectrogram", fontweight="bold")
+        plt.xlabel("Time (s)")
+        plt.ylabel("Frequency (Hz)")
+        plt.colorbar(label="Magnitude")
+        plt.grid()
+
 
     # generate PSS sequences
     pss = np.zeros((3, 62), dtype=complex)
@@ -234,24 +251,6 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False):
 
      # show the waveform using spectrogram
     if debug:
-        plt.figure(figsize=(8.27, 11.69 / 2))
-        plt.rc("font", family="serif")
-        plt.specgram(
-            waveform,
-            Fs=sample_rate,
-            NFFT=int(sample_rate // 15000),
-            noverlap=int((sample_rate // 15000) / 2),
-            cmap="viridis",
-            scale="dB",
-        )
-        plt.axhline(y=-32 * 15000, color="k", linestyle="-.", linewidth=2)
-        plt.axhline(y=32 * 15000, color="k", linestyle="-.", linewidth=2)
-        plt.title("Captured Waveform Spectrogram", fontweight="bold")
-        plt.xlabel("Time (s)")
-        plt.ylabel("Frequency (Hz)")
-        plt.colorbar(label="Magnitude")
-        plt.grid()
-    
         plt.figure(figsize=(8.27, 11.69 / 2))
         plt.rc("font", family="serif")
         plt.stem(max_corr, linefmt="k-", markerfmt="kx", basefmt="k-")
