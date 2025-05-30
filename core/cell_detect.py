@@ -45,7 +45,6 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False, N=128):
         plt.colorbar(label="Magnitude")
         plt.grid()
 
-
     # generate PSS sequences
     pss = np.zeros((3, 62), dtype=complex)
     for i in range(3):
@@ -84,8 +83,6 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False, N=128):
     for i in range(3):
         max_corr[i] = np.max(np.abs(corr[i, :]))
     NID_2 = np.argmax(max_corr)
-
-
 
     # Locate the PSS sequence in the waveform
     pss_center_in_waveform = np.argmax(np.abs(corr[NID_2, :]))
@@ -249,7 +246,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False, N=128):
         print("Peak difference sub5:", peak_diff_sub5)
     NID_1 = SSS_corr_info[2]
 
-     # show the waveform using spectrogram
+    # show the waveform using spectrogram
     if debug:
         plt.figure(figsize=(8.27, 11.69 / 2))
         plt.rc("font", family="serif")
@@ -261,7 +258,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False, N=128):
         plt.ylabel("Correlation coefficient")
         plt.legend(loc="lower right", framealpha=1)
         plt.grid()
-    
+
     if debug:
         plt.show()
     return NID_2, NID_1
