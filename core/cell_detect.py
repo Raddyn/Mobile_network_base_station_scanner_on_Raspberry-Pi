@@ -52,7 +52,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False, N=128):
         pss[i, :] = pss_gen(i)
 
     # decimate the waveform
-    if sample_rate > 1.92e6:
+    if sample_rate > N * 15000:
         waveform = sig.decimate(waveform, int(sample_rate // (15000 * N)))
 
     # normalise the waveform
