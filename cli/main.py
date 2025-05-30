@@ -11,22 +11,20 @@ from collections import Counter
 
 def main():
     parser = argparse.ArgumentParser(description="LTE Cell Scanner")
-    parser.add_argument(
-        "-o",
-        "--open",
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "-o", "--open",
         type=str,
-        required=False,
-        help="Path to the captured waveform file",
+        help="Path to the captured waveform file"
+    )
+    group.add_argument(
+        "-f", "--frequency",
+        type=float,
+        nargs="+",
+        help="Frequency of the captured waveform"
     )
     parser.add_argument(
         "-S", "--save", type=str, required=False, help="Path to save the waveform file"
-    )
-    parser.add_argument(
-        "-f",
-        "--frequency",
-        type=float,
-        required=True,
-        help="Frequency of the captured waveform",
     )
     parser.add_argument(
         "-s",
@@ -65,69 +63,75 @@ def main():
     NID_2 = []
     NID_1 = []
     SSS_flag = False
+
     print("==== LTE Cell Scanner ===============================")
-    print(f"{'Frequency:':<20}{args.frequency / 1e6:.2f} MHz")
-    print(f"{'Sample Rate:':<20}{args.sample_rate / 1e6:.2f} MS/s")
-    print(f"{'Capture Duration:':<20}{args.time:.2f} seconds")
-    print(f"{'Debug Mode:':<20}{'Enabled' if args.debug else 'Disabled'}")
-    print(f"{'Number of Scans:':<20}{args.num_of_scans} scans")
-    print(f"{'Capture Time:':<20}{time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())}")
-    print("=====================================================")
-
     if args.open is None:
-        for i in range(args.num_of_scans):
-            
-            timeout = 0
-            while True:
-                waveform = capture_samples(
-                    f_capture=args.frequency,
-                    sample_rate=int(args.sample_rate),
-                    num_samples=int(args.time * args.sample_rate),
-                )
-                if waveform is not None and len(waveform) > 0:
-                    break
+        for freq in args.frequency:
+            if freq < 0 or freq > 6e9:
+                print(f"Error: Frequency {freq} Hz is out of range (0 - 6 GHz).")
+                sys.exit()
 
-                timeout += 1
-                if timeout > 3:  
-                    print(f"{'Error:':<20} No samples captured after multiple attempts.")
-                    sys.exit()
-                print(f"{'Warning:':<20} No samples captured, retrying... (Attempt {timeout})")
-                time.sleep(0.5)
-                
-            # Scan the waveform, show debug on the last scan if enabled
-            if i == args.num_of_scans - 1:
-                nid2, nid1 = lte_cell_scan(
-                    waveform, sample_rate=args.sample_rate, debug=args.debug, N=args.FFT_size
-                )
-                if nid2 == -1 or nid1 == -1:
-                    if i > 0:
-                        i -= 1
-                    break
-                NID_2.append(nid2)
-                NID_1.append(nid1)
-            else:
-                nid2, nid1 = lte_cell_scan(waveform, sample_rate=args.sample_rate, N=args.FFT_size)
-                if nid2 == -1 or nid1 == -1:
-                    if i > 0:
-                        i -= 1
-                    break
-                NID_2.append(nid2)
-                NID_1.append(nid1)
-        most_common_nid2, count_nid2 = Counter(NID_2).most_common(1)[0]
-        most_common_nid1, count_nid1 = Counter(NID_1).most_common(1)[0]
-        if count_nid2 < args.num_of_scans / 2:
-            print(f"{'Error:':<20} No valid PSS detected")
-            sys.exit()
-        if count_nid1 < args.num_of_scans / 2:
-            SSS_flag = True
-
-        print(f"{'NID_2:':<20} {most_common_nid2}")
-        if SSS_flag:
-            print(f"{'Warning:':<20} No fix on SSS")
-        else:
-            print(f"{'NID_1:':<20} {most_common_nid1}")
+            print(f"{'Frequency:':<20}{freq / 1e6:.2f} MHz")
+            print(f"{'Sample Rate:':<20}{args.sample_rate / 1e6:.2f} MS/s")
+            print(f"{'Capture Duration:':<20}{args.time:.2f} seconds")
+            print(f"{'Debug Mode:':<20}{'Enabled' if args.debug else 'Disabled'}")
+            print(f"{'Number of Scans:':<20}{args.num_of_scans} scans")
+            print(f"{'Capture Time:':<20}{time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())}")
             print("=====================================================")
-            print(f"\033[1m{'Cell ID:':<20} {most_common_nid1 * 3 + most_common_nid2}\033[0m")
+
+            for i in range(args.num_of_scans):
+                
+                timeout = 0
+                while True:
+                    waveform = capture_samples(
+                        f_capture=freq,
+                        sample_rate=int(args.sample_rate),
+                        num_samples=int(args.time * args.sample_rate),
+                    )
+                    if waveform is not None and len(waveform) > 0:
+                        break
+
+                    timeout += 1
+                    if timeout > 3:  
+                        print(f"{'Error:':<20} No samples captured after multiple attempts.")
+                        sys.exit()
+                    print(f"{'Warning:':<20} No samples captured, retrying... (Attempt {timeout})")
+                    time.sleep(0.5)
+                    
+                # Scan the waveform, show debug on the last scan if enabled
+                if i == args.num_of_scans - 1:
+                    nid2, nid1 = lte_cell_scan(
+                        waveform, sample_rate=args.sample_rate, debug=args.debug, N=args.FFT_size
+                    )
+                    if nid2 == -1 or nid1 == -1:
+                        if i > 0:
+                            i -= 1
+                        break
+                    NID_2.append(nid2)
+                    NID_1.append(nid1)
+                else:
+                    nid2, nid1 = lte_cell_scan(waveform, sample_rate=args.sample_rate, N=args.FFT_size)
+                    if nid2 == -1 or nid1 == -1:
+                        if i > 0:
+                            i -= 1
+                        break
+                    NID_2.append(nid2)
+                    NID_1.append(nid1)
+            most_common_nid2, count_nid2 = Counter(NID_2).most_common(1)[0]
+            most_common_nid1, count_nid1 = Counter(NID_1).most_common(1)[0]
+            if count_nid2 < args.num_of_scans / 2:
+                print(f"{'Error:':<20} No valid PSS detected")
+                sys.exit()
+            if count_nid1 < args.num_of_scans / 2:
+                SSS_flag = True
+
+            print(f"{'NID_2:':<20} {most_common_nid2}")
+            if SSS_flag:
+                print(f"{'Warning:':<20} No fix on SSS")
+            else:
+                print(f"{'NID_1:':<20} {most_common_nid1}")
+                print("=====================================================")
+                print(f"\033[1m{'Cell ID:':<20} {most_common_nid1 * 3 + most_common_nid2}\033[0m")
 
     else:
         # If the user provided a file, load the waveform from the file
