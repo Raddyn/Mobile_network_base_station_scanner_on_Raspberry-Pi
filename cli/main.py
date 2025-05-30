@@ -53,7 +53,13 @@ def main():
         default=3,
         help="Number of iterations used to scan the current frequency, outputs most common NID1 and NID2",
     )
-
+    parser.add_argument(
+        "-N",
+        "--FFT_size",
+        type=int,
+        default=128,
+        help="Size of the FFT to be used in the analysis",
+    )
     args = parser.parse_args()
 
     NID_2 = []
@@ -91,7 +97,7 @@ def main():
             # Scan the waveform, show debug on the last scan if enabled
             if i == args.num_of_scans - 1:
                 nid2, nid1 = lte_cell_scan(
-                    waveform, sample_rate=args.sample_rate, debug=args.debug
+                    waveform, sample_rate=args.sample_rate, debug=args.debug, FFT_size=args.FFT_size
                 )
                 if nid2 == -1 or nid1 == -1:
                     if i > 0:
@@ -100,7 +106,7 @@ def main():
                 NID_2.append(nid2)
                 NID_1.append(nid1)
             else:
-                nid2, nid1 = lte_cell_scan(waveform, sample_rate=args.sample_rate)
+                nid2, nid1 = lte_cell_scan(waveform, sample_rate=args.sample_rate, FFT_size=args.FFT_size)
                 if nid2 == -1 or nid1 == -1:
                     if i > 0:
                         i -= 1
