@@ -60,14 +60,15 @@ def main():
     )
     args = parser.parse_args()
 
-    NID_2 = []
-    NID_1 = []
-    SSS_flag = False
+  
     first_run = True
 
 
     if args.open is None:
         for freq in args.frequency:
+            NID_2 = []
+            NID_1 = []
+            SSS_flag = False
             if not first_run:
                 print("\n")
             if freq < 0 or freq > 6e9:
