@@ -66,7 +66,6 @@ def main():
     first_run = True
 
 
-    print("==== LTE Cell Scanner ===============================")
     if args.open is None:
         for freq in args.frequency:
             if not first_run:
