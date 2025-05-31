@@ -155,6 +155,8 @@ def main():
             sys.exit()
         else:
             print(f"{'Input File:':<20} {args.open}")
+            print(f"{'Sample Rate:':<20}{args.sample_rate / 1e6:.2f} MS/s")
+            print("=====================================================")
             if args.open.endswith(".mat"):
                 data = sio.loadmat(args.open)
                 iWave = data["iWave"]
