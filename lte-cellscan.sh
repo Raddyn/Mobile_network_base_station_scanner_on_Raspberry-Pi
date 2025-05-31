@@ -15,7 +15,7 @@ usage() {
 sample_rate="1.92e6"
 capture_time="0.02"
 debug=""
-num_of_scans="3"
+num_of_scans="1"
 FFT_size="128"
 open_file=""
 save_file=""
