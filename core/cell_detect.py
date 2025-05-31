@@ -248,10 +248,10 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False, N=128):
 
     # show the waveform using spectrogram
     if debug:
-        plt.figure(figsize=(8.27, 11.69 / 2))
+        plt.figure(figsize=(8.2/1.8, 11.69 / 3))
         plt.rc("font", family="serif")
         plt.stem(max_corr, linefmt="k-", markerfmt="kx", basefmt="k-")
-        plt.plot(np.max(max_corr) * np.ones(3), "r--", label=f"Cell NID_2: {NID_2}")
+        plt.plot(np.max(max_corr) * np.ones(3), "g--", label=f"Cell NID_2: {NID_2}")
         plt.xticks(np.arange(3), [0, 1, 2])
         plt.title("PSS Correlation", fontweight="bold")
         plt.xlabel("NID_2")
@@ -403,13 +403,14 @@ def normalise_signal(signal):
 
 # Test script
 if __name__ == "__main__":
-    # data = sio.loadmat("data2.mat")
+    # data = sio.loadmat("tests/LTE_PCI_456.mat")
     # iWave = data["iWave"]
     # qWave = data["qWave"]
     # waveform = iWave.squeeze() + 1j * qWave.squeeze()
 
     waveform = np.load("tests/LTE_cell_192_128.npy")
-
+    # sample_rate = len(waveform) / 0.01  # Assuming the waveform is 0.1 seconds long
+    # print(f"Sample Rate: {sample_rate / 1e6:.2f} MS/s")
     # Load the captured waveform
     NID_2, NID_1 = lte_cell_scan(waveform, sample_rate=1.92e6, debug=True)
     print("----- Cell IDentification -----")
