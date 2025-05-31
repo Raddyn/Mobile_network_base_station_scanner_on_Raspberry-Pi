@@ -183,7 +183,9 @@ def main():
             print(f"Error: Directory {os.path.dirname(args.save)} does not exist.")
             sys.exit()
         else:
-            lte_cell_scan.save_waveform(waveform, args.save)
+            np.save(args.save, waveform)
+    print(f"{'Waveform saved to:':<20} {args.save}") if args.save else None
+            
     sys.exit()
 
 
