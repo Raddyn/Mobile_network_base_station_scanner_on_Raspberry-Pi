@@ -154,6 +154,7 @@ def main():
             print(f"Error: File {args.open} does not exist.")
             sys.exit()
         else:
+            print(f"{'Input File:':<20} {args.open}")
             if args.open.endswith(".mat"):
                 data = sio.loadmat(args.open)
                 iWave = data["iWave"]
