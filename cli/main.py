@@ -7,6 +7,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from core.capture import capture_samples
 from core.cell_detect import lte_cell_scan
 from collections import Counter
+import scipy.io as sio
+import numpy as np
 
 
 def main():
@@ -47,7 +49,7 @@ def main():
         "--num_of_scans",
         type=int,
         required=False,
-        default=3,
+        default=1,
         help="Number of iterations used to scan the current frequency, outputs most common NID1 and NID2",
     )
     parser.add_argument(
@@ -75,8 +77,10 @@ def main():
             print(f"{'Frequency:':<20}{freq / 1e6:.2f} MHz")
             print(f"{'Sample Rate:':<20}{args.sample_rate / 1e6:.2f} MS/s")
             print(f"{'Capture Duration:':<20}{args.time:.2f} seconds")
-            print(f"{'Debug Mode:':<20}{'Enabled' if args.debug else 'Disabled'}")
-            print(f"{'Number of Scans:':<20}{args.num_of_scans} scans")
+            if args.debug:
+                print(f"{'Debug Mode:':<20}{'Enabled'}")
+            if args.num_of_scans > 1:
+                print(f"{'Number of Scans:':<20}{args.num_of_scans} scans")
             print(
                 f"{'Capture Time:':<20}{time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())}"
             )
@@ -150,8 +154,14 @@ def main():
             print(f"Error: File {args.open} does not exist.")
             sys.exit()
         else:
-            waveform = lte_cell_scan.load_waveform(args.open)
-            if waveform is None:
+            if args.open.endswith(".mat"):
+                data = sio.loadmat(args.open)
+                iWave = data["iWave"]
+                qWave = data["qWave"]
+                waveform = iWave.squeeze() + 1j * qWave.squeeze()
+            elif args.open.endswith(".npy"):
+                waveform = np.load(args.open)
+            else:
                 print(f"Error: File {args.open} is not a valid waveform file.")
                 sys.exit()
             # Scan the waveform, show debug on the last scan if enabled
