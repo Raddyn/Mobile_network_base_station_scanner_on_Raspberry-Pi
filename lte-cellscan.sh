@@ -1,17 +1,21 @@
 #!/bin/bash
 
-# Zjistí složku, kde leží tento skript
+
+if [[ "$1" == "--install" ]]; then
+    chmod +x "$0"
+    sudo ln -sf "$0" /usr/local/bin/lte-scan
+    echo "Done, run as: lte-scan ..."
+    exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Odkaz na python kód o úroveň níže
 PYTHON_SCRIPT="$SCRIPT_DIR/cli/main.py" 
 
-# Usage message
 usage() {
   echo "Usage: $0 -f <frequency> [-o <open_file>] [-S <save_file>] [-s <sample_rate>] [-T <time>] [-d <debug>] [-n <num_of_scans>] [-N <FFT_size>]"
   exit 1
 }
 
-# Default values
 sample_rate="1.92e6"
 capture_time="0.02"
 debug=""
@@ -21,7 +25,6 @@ open_file=""
 save_file=""
 frequency=""
 
-# Parse options
 while getopts ":o:S:f:s:T:dn:N:" opt; do
   case $opt in
   o) open_file="$OPTARG" ;;
