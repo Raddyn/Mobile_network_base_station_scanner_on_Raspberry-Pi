@@ -40,10 +40,6 @@ while getopts ":o:S:f:s:T:dn:N:" opt; do
   esac
 done
 
-if [ -z "$frequency" ] && [ -z "$open_file" ]; then
-  echo "Error: Either Frequency (-f) or Open File (-o) is required."
-  usage
-fi
 
 cmd="python3 \"$PYTHON_SCRIPT\""
 [ -n "$open_file" ] && cmd+=" -o \"$open_file\""
