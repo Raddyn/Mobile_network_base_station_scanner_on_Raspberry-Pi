@@ -23,5 +23,5 @@ To see the full list of commands, please either refer to the thesis or run the s
 
 ``` shell
 # Example command
-./lte-cellscan -f 806e6 796e6 -n 3 -d
+./lte-cellscan -f 806e6,796e6 -n 3 -d
 ```
