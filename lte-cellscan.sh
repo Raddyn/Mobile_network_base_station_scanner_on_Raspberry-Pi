@@ -46,6 +46,5 @@ cmd="python3 \"$PYTHON_SCRIPT\""
 
 eval $cmd
 if [ $? -ne 0 ]; then
-  echo "Error: Command failed."
   exit 1
 fi
