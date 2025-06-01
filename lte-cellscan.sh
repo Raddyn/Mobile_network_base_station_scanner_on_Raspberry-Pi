@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_SCRIPT="$SCRIPT_DIR/cli/main.py" 
 
@@ -33,6 +32,10 @@ while getopts ":o:S:f:s:T:dn:N:" opt; do
   esac
 done
 
+# Check if no arguments were provided
+if [ "$OPTIND" -eq 1 ]; then
+  usage
+fi
 
 cmd="python3 \"$PYTHON_SCRIPT\""
 [ -n "$open_file" ] && cmd+=" -o \"$open_file\""
