@@ -1,13 +1,6 @@
 #!/bin/bash
 
 
-if [[ "$1" == "--install" ]]; then
-    chmod +x "$0"
-    sudo ln -sf "$0" /usr/local/bin/lte-scan
-    echo "Done, run as: lte-scan ..."
-    exit 0
-fi
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_SCRIPT="$SCRIPT_DIR/cli/main.py" 
 
