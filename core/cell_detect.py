@@ -26,6 +26,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False, N=128):
     NID_1 = None
     NID_2 = None
 
+    # Print the spectogram of the waveform
     if debug:
         plt.figure(figsize=(8.27, 11.69 / 2))
         plt.rc("font", family="serif")
@@ -176,6 +177,7 @@ def lte_cell_scan(waveform, sample_rate=int(1.92e6), debug=False, N=128):
         peak_diff_sub5[K] = max_corr_sub5[np.argmax(max_corr_sub5)] - np.mean(
             max_corr_sub5
         )
+        # Plo the SSS correaltion coefficients comparison
         if debug:
             fig, axs = plt.subplots(2, 1, figsize=(8.27, 11.69 / 2))
             plt.rc("font", family="serif")
@@ -415,4 +417,3 @@ if __name__ == "__main__":
     NID_2, NID_1 = lte_cell_scan(waveform, sample_rate=1.92e6, debug=True)
     print("----- Cell IDentification -----")
     print("NCellID:", NID_1 * 3 + NID_2)
-    plt.show()
