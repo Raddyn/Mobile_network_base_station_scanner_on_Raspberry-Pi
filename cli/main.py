@@ -12,6 +12,7 @@ import numpy as np
 
 
 def main():
+    # Parse command line arguments
     parser = argparse.ArgumentParser(description="LTE Cell Scanner")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
@@ -63,8 +64,9 @@ def main():
 
     first_run = True
 
-    if args.open is None:
-        for freq in args.frequency:
+    # Main program logic
+    if args.open is None:  # Determine whther to run in capture mode or file mode
+        for freq in args.frequency:  # Loop through each frequency provided
             NID_2 = []
             NID_1 = []
             SSS_flag = False
@@ -85,7 +87,7 @@ def main():
                 f"{'Capture Time:':<20}{time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())}"
             )
             print("=====================================================")
-
+            # Capture samples for the given frequency
             for i in range(args.num_of_scans):
                 timeout = 0
                 while True:
@@ -132,6 +134,7 @@ def main():
                         break
                     NID_2.append(nid2)
                     NID_1.append(nid1)
+            # Determine whether the NID_2 and NID_1 are stable across scans, if not, deem them invalid
             most_common_nid2, count_nid2 = Counter(NID_2).most_common(1)[0]
             most_common_nid1, count_nid1 = Counter(NID_1).most_common(1)[0]
             if count_nid2 < args.num_of_scans / 2:
@@ -176,7 +179,7 @@ def main():
             print("=====================================================")
             print(f"{'Cell ID:':<20} {NID_1 * 3 + NID_2}")
 
-    # =====Check if save directory exists====================================================================
+    # Save the waveform if the user provided a save path
     if args.save:
         # Save the waveform to a file
         if not os.path.isdir(os.path.dirname(args.save)):
@@ -185,7 +188,7 @@ def main():
         else:
             np.save(args.save, waveform)
     print(f"{'Waveform saved to:':<20} {args.save}") if args.save else None
-            
+
     sys.exit()
 
 
