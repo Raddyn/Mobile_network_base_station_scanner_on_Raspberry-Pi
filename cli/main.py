@@ -16,12 +16,17 @@ def main():
     parser = argparse.ArgumentParser(description="LTE Cell Scanner")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        "-o", "--open", type=str, help="Path to the captured waveform file"
+        "-o",
+        "--open",
+        type=str,
+        help="Path to the captured waveform file",
+        required=False,
     )
     group.add_argument(
         "-f",
         "--frequency",
         type=float,
+        required=False,
         nargs="+",
         help="Frequency of the captured waveform",
     )
