@@ -1,6 +1,5 @@
 # Mobile network base station scanner on Raspberry Pi
 
-___
 This repository the cod for my bachelor thesis "Mobile network base station scanner on Raspberry Pi" done at Faculty of Electrical Engineering and Communication at the Brno University of Technology.
 
 ## Abstract
